@@ -20,8 +20,8 @@ pub(crate) static RULES: RuleSet = RuleSet {
         "yield",
     ],
     types: &[
-        "False", "None", "True", "bool", "bytes", "dict", "float", "int", "list", "set",
-        "str", "tuple",
+        "False", "None", "True", "bool", "bytes", "dict", "float", "int", "list", "set", "str",
+        "tuple",
     ],
     constants: &[],
     macros: &[],

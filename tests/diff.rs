@@ -38,12 +38,7 @@ fn assert_fixture(root: &Path, name: &str) {
     let actual_full = diff(&old, &new);
     assert_rows(name, &actual_full, &expected_full);
 
-    let actual_preview = diff_preview(
-        &old,
-        &new,
-        DEFAULT_CONTEXT_LINES,
-        DEFAULT_MAX_DISPLAY_LINES,
-    );
+    let actual_preview = diff_preview(&old, &new, DEFAULT_CONTEXT_LINES, DEFAULT_MAX_DISPLAY_LINES);
     assert_preview_rows(name, &actual_preview, &expected_preview);
 }
 
@@ -106,9 +101,19 @@ fn parse_line_number(field: &str) -> Option<u32> {
 fn assert_rows(name: &str, actual: &[DiffLine<'_>], expected: &[ExpectedRow]) {
     assert_eq!(actual.len(), expected.len(), "{name}: full row count");
     for (index, (actual, expected)) in actual.iter().zip(expected).enumerate() {
-        assert_eq!(format!("{:?}", actual.op).to_lowercase(), expected.op, "{name}: row {index}");
-        assert_eq!(actual.old_line, expected.old_line, "{name}: row {index} old");
-        assert_eq!(actual.new_line, expected.new_line, "{name}: row {index} new");
+        assert_eq!(
+            format!("{:?}", actual.op).to_lowercase(),
+            expected.op,
+            "{name}: row {index}"
+        );
+        assert_eq!(
+            actual.old_line, expected.old_line,
+            "{name}: row {index} old"
+        );
+        assert_eq!(
+            actual.new_line, expected.new_line,
+            "{name}: row {index} new"
+        );
         assert_eq!(actual.text, expected.text, "{name}: row {index} text");
     }
 }
@@ -123,11 +128,23 @@ fn assert_preview_rows(name: &str, actual: &[DiffPreviewLine<'_>], expected: &[E
             DiffPreviewOp::Elision => "elision",
         };
         assert_eq!(actual_op, expected.op, "{name}: preview row {index}");
-        assert_eq!(actual.old_line, expected.old_line, "{name}: preview row {index} old");
-        assert_eq!(actual.new_line, expected.new_line, "{name}: preview row {index} new");
+        assert_eq!(
+            actual.old_line, expected.old_line,
+            "{name}: preview row {index} old"
+        );
+        assert_eq!(
+            actual.new_line, expected.new_line,
+            "{name}: preview row {index} new"
+        );
         match actual.text {
-            DiffPreviewText::Source(text) => assert_eq!(text, expected.text, "{name}: preview row {index} text"),
-            DiffPreviewText::Elision => assert_eq!(expected.text, "⋯".as_bytes(), "{name}: preview row {index} elision"),
+            DiffPreviewText::Source(text) => {
+                assert_eq!(text, expected.text, "{name}: preview row {index} text")
+            }
+            DiffPreviewText::Elision => assert_eq!(
+                expected.text,
+                "⋯".as_bytes(),
+                "{name}: preview row {index} elision"
+            ),
         }
     }
 }

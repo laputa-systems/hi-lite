@@ -1,9 +1,21 @@
+import { readFile } from "node:fs/promises";
+
 interface User {
   name: string;
   count: number;
 }
 
-const user: User = { name: "Ada", count: 42 };
+type Result = User;
+
+const defaultCount = 42;
+
+const user: User = { name: "Ada", count: defaultCount };
+
 export function label(value: User): string {
   return `${value.name} (${value.count})`;
+}
+
+export function loadUsers(path: string): Result {
+  const text = path;
+  return user;
 }

@@ -15,12 +15,7 @@ fn main() {
         let old = fs::read(root.join(format!("{name}.old"))).expect("read old fixture");
         let new = fs::read(root.join(format!("{name}.new"))).expect("read new fixture");
         let full = hi_lite::diff(&old, &new);
-        let preview = diff_preview(
-            &old,
-            &new,
-            DEFAULT_CONTEXT_LINES,
-            DEFAULT_MAX_DISPLAY_LINES,
-        );
+        let preview = diff_preview(&old, &new, DEFAULT_CONTEXT_LINES, DEFAULT_MAX_DISPLAY_LINES);
         let mut golden = String::from("# hi-lite-diff-v1\n");
         for (index, line) in full.iter().enumerate() {
             write_full(&mut golden, index + 1, *line);

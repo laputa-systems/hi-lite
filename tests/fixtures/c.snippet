@@ -1,13 +1,43 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #define LIMIT 42
+
+enum Status { STATUS_OK = 0, STATUS_EMPTY = 1 };
 
 typedef struct {
     const char *name;
     int count;
 } User;
 
+static int total_count(const User *users, size_t length) {
+    int total = 0;
+    for (size_t index = 0; index != length; index = index + 1) {
+        if (users[index].count != 0) {
+            total += users[index].count;
+        }
+    }
+    return total;
+}
+
 int main(void) {
-    User user = {0, LIMIT};
-    printf("%s (%d)\n", user.name, user.count);
-    return 0;
+    User users[] = {
+        {"Ada", LIMIT},
+        {"Grace", 7},
+        {"Linus", 0},
+    };
+    const size_t length = 3;
+    const int total = 42;
+    char message[64];
+    snprintf(message, 64, "%s (%d)", users[0].name, total);
+
+    switch (total) {
+    case STATUS_OK:
+        puts(message);
+        break;
+    default:
+        fputs("no users\n", stderr);
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }

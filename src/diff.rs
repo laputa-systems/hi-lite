@@ -71,7 +71,7 @@ struct SourceLine {
 }
 
 impl SourceLine {
-    fn text<'a>(self, source: &'a [u8]) -> &'a [u8] {
+    fn text(self, source: &[u8]) -> &[u8] {
         self.marker.unwrap_or(&source[self.start..self.end])
     }
 }
@@ -371,6 +371,10 @@ mod tests {
         let lines = diff(old, new);
         let preview = unified_preview(&lines, 1, 6);
         assert!(preview.iter().any(|line| line.op == DiffPreviewOp::Elision));
-        assert!(preview.iter().any(|line| line.text == DiffPreviewText::Source(b"new-a")));
+        assert!(
+            preview
+                .iter()
+                .any(|line| line.text == DiffPreviewText::Source(b"new-a"))
+        );
     }
 }

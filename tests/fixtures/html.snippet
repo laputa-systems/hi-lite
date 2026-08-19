@@ -1,7 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Report dashboard</title>
+    <link rel="stylesheet" href="/assets/app.css">
+  </head>
   <body class="card" data-count="42">
-    <h1>Hello</h1>
     <!-- a complete HTML comment -->
+    <main id="main" aria-labelledby="title">
+      <h1 id="title">Hello, <em>Ada</em></h1>
+      <p class="summary">There are <strong>42</strong> reports.</p>
+      <ul class="items">
+        <li data-status="ready">First report</li>
+        <li data-status="pending">Second report</li>
+      </ul>
+      <button>Refresh</button>
+    </main>
+    <script type="module" src="/assets/app.js"></script>
   </body>
 </html>

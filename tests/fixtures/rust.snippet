@@ -2,15 +2,33 @@
 use std::fmt::{self, Display};
 
 #[derive(Debug)]
-struct User<'a> { name: &'a str, count: u32 }
+struct User<'a> {
+    name: &'a str,
+    count: u32,
+}
+
+impl<'a> User<'a> {
+    fn new(name: &'a str, count: u32) -> Self {
+        Self { name, count }
+    }
+
+    fn is_active(&self) -> bool {
+        self.count != 0
+    }
+}
 
 impl<'a> Display for User<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "user")
+        write!(f, "{} ({})", self.name, self.count)
     }
 }
 
 fn main() {
     let user = User { name: "Ada", count: 42 };
-    println!("{user}"); // render the value
+    let summary = user;
+    match summary.count {
+        0 => println!("inactive"),
+        42 => println!("{summary}"),
+    }
+    assert!(summary.is_active()); // validate the value
 }

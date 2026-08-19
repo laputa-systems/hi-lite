@@ -1,0 +1,5 @@
+# hi-lite-golden-v1
+# XSH semantic fixture maintained by hi-lite (not included in syntect).
+
+line 1: 0..3=keyword 3..13=normal 13..15=number
+line 2: 0..5=macro 5..12=normal

@@ -1,12 +1,23 @@
 # hi-lite-golden-v1
 # Scope categories are normalized to hi-lite semantic kinds.
 
-line 1: 0..1=keyword 1..2=keyword 2..9=keyword
-line 2: 
-line 3: 0..8=normal 8..10=keyword 10..14=keyword 14..16=keyword 16..21=normal 21..22=type 22..28=type 28..29=type 29..35=normal 35..36=string 36..47=string 47..48=string 48..49=normal
-line 4: 
-line 5: 0..1=number 1..2=number 2..5=normal
-line 6: 
-line 7: 0..3=string 3..7=string
-line 8: 0..16=string
-line 9: 0..3=string
+line 1: 0..1=keyword 1..2=keyword 2..18=keyword
+line 2:
+line 3: 0..22=normal 22..24=keyword 24..33=keyword 33..35=keyword 35..49=normal 49..50=normal 50..54=normal 54..55=normal 55..56=normal 56..75=normal 75..76=normal 76..77=normal
+line 4:
+line 5: 0..2=keyword 2..3=keyword 3..10=keyword
+line 6:
+line 7: 0..8=normal 8..10=keyword 10..14=keyword 14..16=keyword 16..21=normal 21..22=type 22..28=type 28..29=type 29..35=normal 35..36=string 36..47=string 47..48=string 48..72=normal
+line 8:
+line 9: 0..1=normal 1..8=normal 8..9=normal 9..16=normal 16..17=normal 17..25=normal 25..26=normal
+line 10: 0..1=normal 1..8=normal 8..9=normal 9..15=normal 15..16=normal 16..17=normal 17..25=normal 25..26=normal
+line 11: 0..1=normal 1..8=normal 8..9=normal 9..16=normal 16..17=normal 17..25=normal 25..26=normal
+line 12: 0..1=normal 1..8=normal 8..9=normal 9..16=normal 16..17=normal 17..25=normal 25..26=normal
+line 13:
+line 14: 0..3=string 3..7=string
+line 15: 0..33=string
+line 16: 0..23=string
+line 17: 0..1=string
+line 18: 0..3=string
+line 19:
+line 20: 0..2=keyword 2..3=keyword 3..8=keyword

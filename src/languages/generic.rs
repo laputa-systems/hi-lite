@@ -17,23 +17,6 @@ static SCRIPT_STRINGS: &[StringDelim] = &[
     string_delim!("'", "'", false),
 ];
 
-/// A deliberately empty table for plain text and log syntaxes.
-pub(crate) static PLAIN_RULES: RuleSet = RuleSet {
-    lexer_kind: LexerKind::Code,
-    line_comment: "",
-    block_comment: ("", ""),
-    string_delims: &[],
-    keywords: &[],
-    types: &[],
-    constants: &[],
-    macros: &[],
-    operators: &[],
-    highlight_numbers: false,
-    highlight_upper_constants: false,
-    highlight_fn_calls: false,
-    highlight_bang_macros: false,
-};
-
 static SQL_STRINGS: &[StringDelim] = &[
     string_delim!("\"", "\"", false),
     string_delim!("'", "'", false),
@@ -41,23 +24,60 @@ static SQL_STRINGS: &[StringDelim] = &[
 ];
 
 static C_LIKE_KEYWORDS: &[&str] = &[
-    "abstract", "assert", "break", "case", "catch", "class", "const",
-    "continue", "default", "do", "else", "enum", "extends", "final",
-    "finally", "for", "foreach", "fun", "if", "implements", "import",
-    "interface", "new", "operator", "package", "private", "protected",
-    "public", "return", "static", "struct", "switch", "this", "throw",
-    "throws", "trait", "try", "typedef", "union", "using", "virtual",
-    "void", "volatile", "while",
+    "abstract",
+    "assert",
+    "break",
+    "case",
+    "catch",
+    "class",
+    "const",
+    "continue",
+    "default",
+    "do",
+    "else",
+    "enum",
+    "extends",
+    "final",
+    "finally",
+    "for",
+    "foreach",
+    "fun",
+    "if",
+    "implements",
+    "import",
+    "interface",
+    "new",
+    "operator",
+    "package",
+    "private",
+    "protected",
+    "public",
+    "return",
+    "static",
+    "struct",
+    "switch",
+    "this",
+    "throw",
+    "throws",
+    "trait",
+    "try",
+    "typedef",
+    "union",
+    "using",
+    "virtual",
+    "void",
+    "volatile",
+    "while",
 ];
 
 static C_LIKE_TYPES: &[&str] = &[
-    "bool", "boolean", "byte", "char", "double", "float", "int", "long",
-    "object", "short", "size_t", "string", "unsigned", "var",
+    "bool", "boolean", "byte", "char", "double", "float", "int", "long", "object", "short",
+    "size_t", "string", "unsigned", "var",
 ];
 
 static C_LIKE_OPERATORS: &[&str] = &[
-    "!=", "&&", "++", "--", "->", "::", "<=", "==", ">=", "||", "=",
-    "+", "-", "*", "/", "%", "<", ">", "&", "|", "^", "!", ".",
+    "!=", "&&", "++", "--", "->", "::", "<=", "==", ">=", "||", "=", "+", "-", "*", "/", "%", "<",
+    ">", "&", "|", "^", "!", ".",
 ];
 
 /// C, C++, JVM, .NET, Swift, and other brace-oriented languages.
@@ -78,10 +98,9 @@ pub(crate) static C_LIKE_RULES: RuleSet = RuleSet {
 };
 
 static HASH_KEYWORDS: &[&str] = &[
-    "alias", "and", "begin", "case", "class", "def", "do", "else", "elsif",
-    "end", "ensure", "for", "if", "in", "lambda", "module", "next", "not",
-    "or", "redo", "rescue", "retry", "return", "then", "unless", "until",
-    "when", "while", "yield",
+    "alias", "and", "begin", "case", "class", "def", "do", "else", "elsif", "end", "ensure", "for",
+    "if", "in", "lambda", "module", "next", "not", "or", "redo", "rescue", "retry", "return",
+    "then", "unless", "until", "when", "while", "yield",
 ];
 
 /// Ruby, Perl, R, and other hash-comment scripting languages.
@@ -94,7 +113,9 @@ pub(crate) static HASH_SCRIPT_RULES: RuleSet = RuleSet {
     types: &["FALSE", "NA", "NULL", "TRUE", "nil"],
     constants: &[],
     macros: &[],
-    operators: &["!=", "&&", "=>", "==", "<=", ">=", "||", "=", "+", "-", "*", "/", "%", "."],
+    operators: &[
+        "!=", "&&", "=>", "==", "<=", ">=", "||", "=", "+", "-", "*", "/", "%", ".",
+    ],
     highlight_numbers: true,
     highlight_upper_constants: true,
     highlight_fn_calls: true,
@@ -102,9 +123,8 @@ pub(crate) static HASH_SCRIPT_RULES: RuleSet = RuleSet {
 };
 
 static DASH_KEYWORDS: &[&str] = &[
-    "as", "case", "class", "data", "default", "deriving", "else", "foreign",
-    "if", "import", "in", "instance", "let", "module", "newtype", "of", "then",
-    "theorem", "type", "where",
+    "as", "case", "class", "data", "default", "deriving", "else", "foreign", "if", "import", "in",
+    "instance", "let", "module", "newtype", "of", "then", "theorem", "type", "where",
 ];
 
 /// Haskell, Lua, and ML-family languages with dash comments.
@@ -117,7 +137,9 @@ pub(crate) static DASH_RULES: RuleSet = RuleSet {
     types: &["Bool", "Char", "Double", "Float", "Int", "String", "unit"],
     constants: &["false", "nil", "true"],
     macros: &[],
-    operators: &["!=", "&&", "->", "<=", "==", ">=", "||", "=", "+", "-", "*", "/", "%", "."],
+    operators: &[
+        "!=", "&&", "->", "<=", "==", ">=", "||", "=", "+", "-", "*", "/", "%", ".",
+    ],
     highlight_numbers: true,
     highlight_upper_constants: true,
     highlight_fn_calls: true,
@@ -131,12 +153,24 @@ pub(crate) static SQL_RULES: RuleSet = RuleSet {
     block_comment: ("/*", "*/"),
     string_delims: SQL_STRINGS,
     keywords: &[
-        "alter", "and", "as", "begin", "case", "create", "delete", "drop", "else",
-        "end", "from", "group", "having", "insert", "into", "join", "not", "null",
-        "on", "or", "order", "select", "set", "table", "then", "union", "update",
-        "values", "when", "where", "with",
+        "alter", "and", "as", "begin", "case", "create", "delete", "drop", "else", "end", "from",
+        "group", "having", "insert", "into", "join", "not", "null", "on", "or", "order", "select",
+        "set", "table", "then", "union", "update", "values", "when", "where", "with",
     ],
-    types: &["bigint", "boolean", "char", "date", "decimal", "float", "int", "integer", "text", "time", "timestamp", "varchar"],
+    types: &[
+        "bigint",
+        "boolean",
+        "char",
+        "date",
+        "decimal",
+        "float",
+        "int",
+        "integer",
+        "text",
+        "time",
+        "timestamp",
+        "varchar",
+    ],
     constants: &["false", "true"],
     macros: &[],
     operators: &["!=", "<=", ">=", "=", "+", "-", "*", "/", "%", "<", ">"],
@@ -152,7 +186,9 @@ pub(crate) static LISP_RULES: RuleSet = RuleSet {
     line_comment: ";",
     block_comment: ("", ""),
     string_delims: SCRIPT_STRINGS,
-    keywords: &["def", "defn", "do", "else", "fn", "if", "lambda", "let", "let*", "setq", "when"],
+    keywords: &[
+        "def", "defn", "do", "else", "fn", "if", "lambda", "let", "let*", "setq", "when",
+    ],
     types: &["false", "nil", "true"],
     constants: &[],
     macros: &[],
@@ -169,10 +205,27 @@ pub(crate) static TEX_RULES: RuleSet = RuleSet {
     line_comment: "%",
     block_comment: ("", ""),
     string_delims: &[],
-    keywords: &["begin", "document", "end", "item", "section", "subsection", "usepackage"],
+    keywords: &[
+        "begin",
+        "document",
+        "end",
+        "item",
+        "section",
+        "subsection",
+        "usepackage",
+    ],
     types: &[],
     constants: &[],
-    macros: &["cite", "documentclass", "frac", "include", "label", "ref", "textbf", "textit"],
+    macros: &[
+        "cite",
+        "documentclass",
+        "frac",
+        "include",
+        "label",
+        "ref",
+        "textbf",
+        "textit",
+    ],
     operators: &[],
     highlight_numbers: true,
     highlight_upper_constants: false,
@@ -186,7 +239,10 @@ pub(crate) static ERLANG_RULES: RuleSet = RuleSet {
     line_comment: "%",
     block_comment: ("", ""),
     string_delims: SCRIPT_STRINGS,
-    keywords: &["after", "begin", "case", "catch", "end", "fun", "if", "let", "of", "receive", "try", "when"],
+    keywords: &[
+        "after", "begin", "case", "catch", "end", "fun", "if", "let", "of", "receive", "try",
+        "when",
+    ],
     types: &["false", "nil", "true"],
     constants: &[],
     macros: &[],

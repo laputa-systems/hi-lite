@@ -1,8 +1,25 @@
 CC := cc
-CFLAGS := -Wall -O2
+CFLAGS := -Wall -Wextra -O2
+CPPFLAGS := -D_POSIX_C_SOURCE=200809L
+BUILD := build
+SOURCES := src/main.c
+OBJECTS := build/main.o
 
-all: app
-	$(CC) $(CFLAGS) -o $@ main.c
+.PHONY: all clean test
 
-app: main.c
-	$(CC) -o $@ $<
+all: build/reporter
+
+$(BUILD):
+	mkdir -p $@
+
+build/reporter: build/main.o | build
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+
+build/main.o: src/main.c include/reporter.h | build
+	$(CC) $(CPPFLAGS) $(CFLAGS) -Iinclude -MMD -MP -c $< -o $@
+
+test: build/reporter
+	$(BUILD)/reporter --self-test
+
+clean:
+	rm -rf $(BUILD)

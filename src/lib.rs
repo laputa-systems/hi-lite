@@ -1,17 +1,16 @@
 //! Dependency-free syntax highlighting for line-oriented terminal and text UIs.
+mod diff;
 ///
 /// The crate owns syntax tokenization and state propagation across lines. It does
 /// not depend on an editor buffer or renderer; callers provide one line of bytes
 /// at a time and choose their own presentation for the semantic `Kind` values.
 mod highlight;
-mod diff;
 mod language;
 mod languages;
 
 pub use diff::{
-    DiffLine, DiffOp, DiffPreviewLine, DiffPreviewOp, DiffPreviewText, DiffScratch,
-    DEFAULT_CONTEXT_LINES, DEFAULT_MAX_DISPLAY_LINES, diff, diff_preview,
-    unified_preview,
+    DEFAULT_CONTEXT_LINES, DEFAULT_MAX_DISPLAY_LINES, DiffLine, DiffOp, DiffPreviewLine,
+    DiffPreviewOp, DiffPreviewText, DiffScratch, diff, diff_preview, unified_preview,
 };
 pub use highlight::{
     Highlighter, Kind, Run, State, TextPosition, byte_kinds_to_char_kinds,

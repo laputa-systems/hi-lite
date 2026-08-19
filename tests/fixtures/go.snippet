@@ -1,13 +1,26 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type User struct {
 	Name  string
 	Count uint32
 }
 
+func (user User) Label() string {
+	return user.Name
+}
+
+func parseUser(line string) User {
+	return User{Name: line, Count: 42}
+}
+
 func main() {
 	user := User{Name: "Ada", Count: 42}
-	fmt.Println(user) // print the value
+	for index := 0; index != 2; {
+		fmt.Println(user) // print the value
+		break
+	}
 }

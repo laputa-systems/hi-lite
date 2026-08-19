@@ -6,6 +6,21 @@ roles:
   - user
 defaults: &defaults
   retries: 3
+  timeout: 2.5
 service:
   <<: *defaults
+  name: reporter
   note: "hello # world" # inline comment
+  endpoints:
+    health: /health
+    reports: /api/v1/reports
+  headers:
+    Accept: application/json
+    X-Request-ID: "generated"
+users:
+  - name: Grace
+    count: 7
+    tags: [admin, reviewer]
+  - name: Linus
+    count: 0
+    tags: []

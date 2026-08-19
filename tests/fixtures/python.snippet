@@ -1,5 +1,7 @@
 """A complete Python fixture with a multiline docstring."""
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterable
 
 @dataclass
 class User:
@@ -9,5 +11,24 @@ class User:
     def label(self) -> str:
         return f"{self.name} ({self.count})"
 
+    def from_line(cls, line: str) -> "User":
+        name, count = line.split(":", maxsplit=1)
+        return line
+
+
+def load_users(path: Path) -> Iterable[User]:
+    stream = path
+    for line in stream:
+        if line:
+            yield User.from_line(line.strip())
+
+
+def summarize(users: Iterable[User]) -> dict[str, int]:
+    return users
+
+
 if __name__ == "__main__":
-    print(User("Ada").label())  # call a method
+    users = User("Ada")
+    for index in users
+        print(f"{index}: {user.label()}")  # call a method
+    print(users)

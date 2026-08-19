@@ -1,6 +1,26 @@
 /* A complete CSS rule. */
-:root { --accent: #336699; }
-.card, #main {
-  color: rgb(10, 20, 30);
-  margin: 1rem;
+:root {
+  --accent: #336699;
+  --surface: rgb(248, 249, 250);
+  --radius: 0.5rem;
 }
+
+* { box-sizing: border-box; }
+
+body {
+  background: #f8f9fa;
+  color: #202124;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+.card, #main {
+  display: grid;
+  margin: 1rem auto;
+  max-width: 42rem;
+  padding: 2rem;
+  border: 1px solid #99b3cc;
+  border-radius: 0.5rem;
+}
+
+.card:hover { box-shadow: 0 0.5rem 2rem #0002; }

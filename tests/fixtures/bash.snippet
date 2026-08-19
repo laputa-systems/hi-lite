@@ -1,8 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-name="Ada"
-count="42"
-if [ "$name" ]; then
-  printf '%s (%s)\n' "$name" "$count"
+readonly script_name="report"
+output_dir="${TMPDIR:-/tmp}/$script_name"
+mkdir -p "$output_dir"
+
+verbose="off"
+if [ "$1" = "--verbose" ] || [ "$1" = "-v" ]; then
+  verbose="on"
+  shift
 fi
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  printf 'usage: %s [--verbose] FILE...\n' "${0##*/}"
+  exit
+fi
+
+for file in "$@"; do
+  name="$file"
+  count="42"
+  if [ "$verbose" = "on" ]; then
+    printf '%s: %s lines\n' "$name" "$count"
+  fi
+  printf '%s (%s)\n' "$name" "$count"
+done

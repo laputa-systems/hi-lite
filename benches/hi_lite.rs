@@ -116,6 +116,16 @@ const FIXTURE_SOURCES: &[(&str, Language, &str)] = &[
         Language::Yaml,
         include_str!("../tests/fixtures/yaml.snippet"),
     ),
+    (
+        "language_probe",
+        Language::Cpp,
+        include_str!("../tests/fixtures/language_probe.snippet"),
+    ),
+    (
+        "xsh",
+        Language::Xsh,
+        include_str!("../tests/fixtures/xsh.snippet"),
+    ),
 ];
 
 fn load_fixtures() -> Vec<Fixture> {
@@ -199,9 +209,9 @@ fn warm_corpus(
 }
 
 fn cold_corpus(fixtures: &[Fixture], repetitions: usize) -> u64 {
-    fixtures
-        .iter()
-        .fold(0, |checksum, fixture| checksum ^ cold_fixture(fixture, repetitions))
+    fixtures.iter().fold(0, |checksum, fixture| {
+        checksum ^ cold_fixture(fixture, repetitions)
+    })
 }
 
 fn configure_corpus_bench<'a, 'b>(
@@ -231,10 +241,7 @@ fn single_lines(fixtures: &[Fixture]) -> Vec<&'static [u8]> {
 }
 
 fn single_line_totals(lines: &[&[u8]]) -> (usize, usize) {
-    (
-        lines.iter().map(|line| line.len()).sum(),
-        lines.len(),
-    )
+    (lines.iter().map(|line| line.len()).sum(), lines.len())
 }
 
 fn scratch_for_lines(lines: &[&[u8]]) -> Vec<Kind> {
@@ -285,16 +292,19 @@ fn configure_single_line_bench<'a, 'b>(
 }
 
 fn diff_totals() -> (usize, usize) {
-    DIFF_FIXTURES.iter().fold((0, 0), |(bytes, lines), (old, new)| {
-        let line_count = old.iter().chain(new.iter()).filter(|&&byte| byte == b'\n').count();
-        (bytes + old.len() + new.len(), lines + line_count)
-    })
+    DIFF_FIXTURES
+        .iter()
+        .fold((0, 0), |(bytes, lines), (old, new)| {
+            let line_count = old
+                .iter()
+                .chain(new.iter())
+                .filter(|&&byte| byte == b'\n')
+                .count();
+            (bytes + old.len() + new.len(), lines + line_count)
+        })
 }
 
-fn diff_checksum(
-    lines: &[hi_lite::DiffLine<'_>],
-    preview: &[hi_lite::DiffPreviewLine<'_>],
-) -> u64 {
+fn diff_checksum(lines: &[hi_lite::DiffLine<'_>], preview: &[hi_lite::DiffPreviewLine<'_>]) -> u64 {
     let mut checksum = 0u64;
     for line in lines {
         let op = match line.op {
@@ -357,11 +367,7 @@ fn cold_diff_corpus() -> u64 {
     for _ in 0..DIFF_REPETITIONS {
         for &(old, new) in DIFF_FIXTURES {
             let lines = diff(old, new);
-            let preview = unified_preview(
-                &lines,
-                DEFAULT_CONTEXT_LINES,
-                DEFAULT_MAX_DISPLAY_LINES,
-            );
+            let preview = unified_preview(&lines, DEFAULT_CONTEXT_LINES, DEFAULT_MAX_DISPLAY_LINES);
             checksum ^= diff_checksum(&lines, &preview);
         }
     }
@@ -418,7 +424,11 @@ fn hi_lite_highlight_single_lines_cold(bencher: Bencher) {
     let fixtures = load_fixtures();
     let lines = single_lines(&fixtures);
     configure_single_line_bench(bencher, &lines).bench_local(|| {
-        black_box(cold_single_line_corpus(&fixtures, &lines, CORPUS_REPETITIONS));
+        black_box(cold_single_line_corpus(
+            &fixtures,
+            &lines,
+            CORPUS_REPETITIONS,
+        ));
     });
 }
 
@@ -498,6 +508,8 @@ fixture_benchmarks!(
     (hi_lite_toml, hi_lite_toml_cold, 13),
     (hi_lite_typescript, hi_lite_typescript_cold, 14),
     (hi_lite_yaml, hi_lite_yaml_cold, 15),
+    (hi_lite_language_probe, hi_lite_language_probe_cold, 16),
+    (hi_lite_xsh, hi_lite_xsh_cold, 17),
 );
 
 fn main() {

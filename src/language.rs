@@ -2,17 +2,54 @@ use crate::languages;
 
 /// A dependency-free syntax selection.
 ///
-/// The variants mirror the programming-language grammars shipped in syntect's
-/// default syntax set. Most of them intentionally share one of the generic
-/// rule tables in `languages::generic`; specialized variants retain the richer
-/// scanners already present for Rust, Python, markup, and build files.
+/// The variants are the maintained language modes exposed by hi-lite. Most
+/// intentionally share one of the generic rule tables in `languages::generic`;
+/// specialized variants retain the richer scanners already present for Rust,
+/// Python, markup, and build files.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Language {
-    Rust, Python, Go, JavaScript, TypeScript, Bash, C, Cpp, CSharp, Json, Yaml,
-    Toml, Ini, Makefile, Html, Css, Scss, Less, Dockerfile, Markdown, Xml,
-    ActionScript, AppleScript, Batch, Clojure, D, Erlang, Graphviz, Groovy,
-    Haskell, Java, LaTeX, Lisp, Lua, Matlab, Ocaml, ObjectiveC, ObjectiveCpp,
-    Pascal, Perl, Php, R, Ruby, Scala, Sql, Swift, Tcl, Kotlin, Elm, Regex, PlainText, Xsh,
+    Rust,
+    Python,
+    Go,
+    JavaScript,
+    TypeScript,
+    Bash,
+    C,
+    Cpp,
+    CSharp,
+    Json,
+    Yaml,
+    Toml,
+    Ini,
+    Makefile,
+    Html,
+    Css,
+    Scss,
+    Dockerfile,
+    Markdown,
+    Xml,
+    Batch,
+    Clojure,
+    Erlang,
+    Groovy,
+    Haskell,
+    Java,
+    LaTeX,
+    Lisp,
+    Lua,
+    Ocaml,
+    ObjectiveC,
+    ObjectiveCpp,
+    Perl,
+    Php,
+    R,
+    Ruby,
+    Scala,
+    Sql,
+    Swift,
+    Kotlin,
+    Regex,
+    Xsh,
 }
 
 impl Language {
@@ -25,11 +62,26 @@ impl Language {
             Some(Self::Python)
         } else if matches_ignore_ascii_case(name, &["go", "golang"]) {
             Some(Self::Go)
-        } else if matches_ignore_ascii_case(name, &["javascript", "js", "jsx", "mjs", "javascript (rails)"]) {
+        } else if matches_ignore_ascii_case(
+            name,
+            &["javascript", "js", "jsx", "mjs", "javascript (rails)"],
+        ) {
             Some(Self::JavaScript)
         } else if matches_ignore_ascii_case(name, &["typescript", "ts", "tsx"]) {
             Some(Self::TypeScript)
-        } else if matches_ignore_ascii_case(name, &["bash", "shell", "sh", "zsh", "fish", "bourne again shell (bash)", "shell-unix-generic", "commands-builtin-shell-bash"]) {
+        } else if matches_ignore_ascii_case(
+            name,
+            &[
+                "bash",
+                "shell",
+                "sh",
+                "zsh",
+                "fish",
+                "bourne again shell (bash)",
+                "shell-unix-generic",
+                "commands-builtin-shell-bash",
+            ],
+        ) {
             Some(Self::Bash)
         } else if name.eq_ignore_ascii_case("c") {
             Some(Self::C)
@@ -37,7 +89,23 @@ impl Language {
             Some(Self::Cpp)
         } else if matches_ignore_ascii_case(name, &["c#", "csharp", "cs"]) {
             Some(Self::CSharp)
-        } else if matches_ignore_ascii_case(name, &["json", "sublime-settings", "sublime-menu", "sublime-keymap", "sublime-mousemap", "sublime-theme", "sublime-build", "sublime-project", "sublime-completions", "sublime-commands", "sublime-macro", "sublime-color-scheme"]) {
+        } else if matches_ignore_ascii_case(
+            name,
+            &[
+                "json",
+                "sublime-settings",
+                "sublime-menu",
+                "sublime-keymap",
+                "sublime-mousemap",
+                "sublime-theme",
+                "sublime-build",
+                "sublime-project",
+                "sublime-completions",
+                "sublime-commands",
+                "sublime-macro",
+                "sublime-color-scheme",
+            ],
+        ) {
             Some(Self::Json)
         } else if matches_ignore_ascii_case(name, &["yaml", "yml"]) {
             Some(Self::Yaml)
@@ -45,36 +113,60 @@ impl Language {
             Some(Self::Toml)
         } else if matches_ignore_ascii_case(name, &["ini", "config", "conf", "cfg"]) {
             Some(Self::Ini)
-        } else if matches_ignore_ascii_case(name, &["makefile", "make", "gnu make", "gnumakefile", "ocamlmakefile"]) {
+        } else if matches_ignore_ascii_case(
+            name,
+            &[
+                "makefile",
+                "make",
+                "gnu make",
+                "gnumakefile",
+                "ocamlmakefile",
+            ],
+        ) {
             Some(Self::Makefile)
-        } else if matches_ignore_ascii_case(name, &["html", "htm", "html (asp)", "html (erlang)", "html (rails)", "html (tcl)", "asp", "java server page (jsp)"]) {
+        } else if matches_ignore_ascii_case(
+            name,
+            &[
+                "html",
+                "htm",
+                "html (asp)",
+                "html (erlang)",
+                "html (rails)",
+                "html (tcl)",
+                "asp",
+                "java server page (jsp)",
+            ],
+        ) {
             Some(Self::Html)
         } else if name.eq_ignore_ascii_case("css") {
             Some(Self::Css)
         } else if matches_ignore_ascii_case(name, &["scss", "sass"]) {
             Some(Self::Scss)
-        } else if name.eq_ignore_ascii_case("less") {
-            Some(Self::Less)
         } else if matches_ignore_ascii_case(name, &["dockerfile", "docker"]) {
             Some(Self::Dockerfile)
-        } else if matches_ignore_ascii_case(name, &["markdown", "md", "mdx", "multimarkdown", "restructuredtext", "textile"]) {
+        } else if matches_ignore_ascii_case(
+            name,
+            &[
+                "markdown",
+                "md",
+                "mdx",
+                "multimarkdown",
+                "restructuredtext",
+                "textile",
+            ],
+        ) {
             Some(Self::Markdown)
-        } else if matches_ignore_ascii_case(name, &["xml", "xsd", "xslt", "tld", "dtml", "rss", "opml", "svg"]) {
+        } else if matches_ignore_ascii_case(
+            name,
+            &["xml", "xsd", "xslt", "tld", "dtml", "rss", "opml", "svg"],
+        ) {
             Some(Self::Xml)
-        } else if name.eq_ignore_ascii_case("actionscript") {
-            Some(Self::ActionScript)
-        } else if name.eq_ignore_ascii_case("applescript") {
-            Some(Self::AppleScript)
         } else if matches_ignore_ascii_case(name, &["batch file", "batch", "bat", "cmd"]) {
             Some(Self::Batch)
         } else if name.eq_ignore_ascii_case("clojure") {
             Some(Self::Clojure)
-        } else if name.eq_ignore_ascii_case("d") {
-            Some(Self::D)
         } else if name.eq_ignore_ascii_case("erlang") {
             Some(Self::Erlang)
-        } else if matches_ignore_ascii_case(name, &["graphviz (dot)", "dot", "graphviz"]) {
-            Some(Self::Graphviz)
         } else if name.eq_ignore_ascii_case("groovy") {
             Some(Self::Groovy)
         } else if matches_ignore_ascii_case(name, &["haskell", "literate haskell"]) {
@@ -87,16 +179,12 @@ impl Language {
             Some(Self::Lisp)
         } else if name.eq_ignore_ascii_case("lua") {
             Some(Self::Lua)
-        } else if name.eq_ignore_ascii_case("matlab") {
-            Some(Self::Matlab)
         } else if matches_ignore_ascii_case(name, &["ocaml", "ocamllex", "ocamlyacc", "camlp4"]) {
             Some(Self::Ocaml)
         } else if name.eq_ignore_ascii_case("objective-c") {
             Some(Self::ObjectiveC)
         } else if name.eq_ignore_ascii_case("objective-c++") {
             Some(Self::ObjectiveCpp)
-        } else if name.eq_ignore_ascii_case("pascal") {
-            Some(Self::Pascal)
         } else if name.eq_ignore_ascii_case("perl") {
             Some(Self::Perl)
         } else if matches_ignore_ascii_case(name, &["php", "php source"]) {
@@ -111,16 +199,17 @@ impl Language {
             Some(Self::Sql)
         } else if name.eq_ignore_ascii_case("swift") {
             Some(Self::Swift)
-        } else if name.eq_ignore_ascii_case("tcl") {
-            Some(Self::Tcl)
         } else if matches_ignore_ascii_case(name, &["kotlin", "kt", "kts"]) {
             Some(Self::Kotlin)
-        } else if name.eq_ignore_ascii_case("elm") {
-            Some(Self::Elm)
-        } else if matches_ignore_ascii_case(name, &["regular expression", "regular expressions (javascript)", "regular expressions (python)"]) {
+        } else if matches_ignore_ascii_case(
+            name,
+            &[
+                "regular expression",
+                "regular expressions (javascript)",
+                "regular expressions (python)",
+            ],
+        ) {
             Some(Self::Regex)
-        } else if matches_ignore_ascii_case(name, &["plain text", "make output", "cargo build results", "diff", "nant build file", "latex log"]) {
-            Some(Self::PlainText)
         } else if name.eq_ignore_ascii_case("xsh") {
             Some(Self::Xsh)
         } else {
@@ -128,64 +217,83 @@ impl Language {
         }
     }
 
-    /// Resolve a filename extension or conventional filename.
-    pub fn from_extension(extension: &str) -> Option<Self> {
-        let extension = extension.strip_prefix('.').unwrap_or(extension);
+    /// Resolve a language from a file extension, with or without its leading dot.
+    pub fn from_file_ext(file_ext: &str) -> Option<Self> {
+        let extension = file_ext.strip_prefix('.').unwrap_or(file_ext);
         if extension == "M" {
             return Some(Self::ObjectiveCpp);
         }
         if let Some(language) = Self::from_name(extension) {
             return Some(language);
         }
-        if name_matches(extension, &["txt", "diff", "patch", "build"]) {
-            Some(Self::PlainText)
-        } else if name_matches(extension, &["asa"]) {
+        if name_matches(extension, &["asa"]) {
             Some(Self::Html)
         } else if matches_ignore_ascii_case(extension, &["c", "h"]) {
             Some(Self::C)
-        } else if matches_ignore_ascii_case(extension, &["cc", "cp", "cpp", "cxx", "c++", "hh", "hpp", "hxx", "h++", "inl", "ipp"]) {
+        } else if matches_ignore_ascii_case(
+            extension,
+            &[
+                "cc", "cp", "cpp", "cxx", "c++", "hh", "hpp", "hxx", "h++", "inl", "ipp",
+            ],
+        ) {
             Some(Self::Cpp)
         } else if matches_ignore_ascii_case(extension, &["cs", "csx"]) {
             Some(Self::CSharp)
-        } else if matches_ignore_ascii_case(extension, &["asa", "as"]) {
-            Some(Self::ActionScript)
-        } else if matches_ignore_ascii_case(extension, &["applescript", "script editor"]) {
-            Some(Self::AppleScript)
         } else if name_matches(extension, &["clj"]) {
             Some(Self::Clojure)
-        } else if name_matches(extension, &["d", "di"]) {
-            Some(Self::D)
         } else if name_matches(extension, &["erl", "hrl", "emakefile"]) {
             Some(Self::Erlang)
-        } else if name_matches(extension, &["dot", "gv"]) {
-            Some(Self::Graphviz)
         } else if name_matches(extension, &["groovy", "gvy", "gradle"]) {
             Some(Self::Groovy)
         } else if name_matches(extension, &["hs", "lhs"]) {
             Some(Self::Haskell)
-        } else if name_matches(extension, &["pyx", "pyx.in", "pxd", "pxd.in", "pxi", "pxi.in", "rpy", "cpy", "sconstruct", "sconscript", "snakefile", "wscript", "gyp", "gypi"]) {
+        } else if name_matches(
+            extension,
+            &[
+                "pyx",
+                "pyx.in",
+                "pxd",
+                "pxd.in",
+                "pxi",
+                "pxi.in",
+                "rpy",
+                "cpy",
+                "sconstruct",
+                "sconscript",
+                "snakefile",
+                "wscript",
+                "gyp",
+                "gypi",
+            ],
+        ) {
             Some(Self::Python)
         } else if name_matches(extension, &["java", "bsh"]) {
             Some(Self::Java)
         } else if name_matches(extension, &["bib", "tex", "ltx", "sty", "cls"]) {
             Some(Self::LaTeX)
-        } else if name_matches(extension, &["lisp", "cl", "clisp", "l", "mud", "el", "scm", "ss", "lsp", "fasl"]) {
+        } else if name_matches(
+            extension,
+            &[
+                "lisp", "cl", "clisp", "l", "mud", "el", "scm", "ss", "lsp", "fasl",
+            ],
+        ) {
             Some(Self::Lisp)
         } else if name_matches(extension, &["lua"]) {
             Some(Self::Lua)
-        } else if name_matches(extension, &["matlab"]) {
-            Some(Self::Matlab)
         } else if name_matches(extension, &["ml", "mli", "mll", "mly"]) {
             Some(Self::Ocaml)
         } else if extension == "m" {
             Some(Self::ObjectiveC)
         } else if name_matches(extension, &["mm"]) {
             Some(Self::ObjectiveCpp)
-        } else if name_matches(extension, &["pas", "p", "dpr"]) {
-            Some(Self::Pascal)
         } else if name_matches(extension, &["pl", "pm", "pod", "t"]) {
             Some(Self::Perl)
-        } else if name_matches(extension, &["php", "php3", "php4", "php5", "php7", "phps", "phpt", "phtml"]) {
+        } else if name_matches(
+            extension,
+            &[
+                "php", "php3", "php4", "php5", "php7", "phps", "phpt", "phtml",
+            ],
+        ) {
             Some(Self::Php)
         } else if name_matches(extension, &["r", "s", "rd"]) {
             Some(Self::R)
@@ -195,18 +303,23 @@ impl Language {
             Some(Self::Scala)
         } else if name_matches(extension, &["sql", "ddl", "dml", "sql.erb"]) {
             Some(Self::Sql)
-        } else if name_matches(extension, &["tcl"]) {
-            Some(Self::Tcl)
-        } else if name_matches(extension, &["shtml", "xhtml", "inc", "tmpl", "tpl", "yaws", "jsp", "asp", "adp", "rhtml", "erb", "rails", "html.erb"]) {
+        } else if name_matches(
+            extension,
+            &[
+                "shtml", "xhtml", "inc", "tmpl", "tpl", "yaws", "jsp", "asp", "adp", "rhtml",
+                "erb", "rails", "html.erb",
+            ],
+        ) {
             Some(Self::Html)
-        } else if name_matches(extension, &["xml", "xsd", "xslt", "tld", "dtml", "rss", "opml", "svg"]) {
+        } else if name_matches(
+            extension,
+            &["xml", "xsd", "xslt", "tld", "dtml", "rss", "opml", "svg"],
+        ) {
             Some(Self::Xml)
         } else if name_matches(extension, &["css.erb", "css.liquid"]) {
             Some(Self::Css)
         } else if name_matches(extension, &["scss", "sass"]) {
             Some(Self::Scss)
-        } else if name_matches(extension, &["less"]) {
-            Some(Self::Less)
         } else if name_matches(extension, &["js.erb"]) {
             Some(Self::JavaScript)
         } else if name_matches(extension, &["re"]) {
@@ -217,51 +330,31 @@ impl Language {
             Some(Self::Yaml)
         } else if name_matches(extension, &["rprofile"]) {
             Some(Self::R)
-        } else if name_matches(extension, &["appfile", "gemfile", "rakefile", "vagrantfile", "berksfile", "brewfile", "capfile", "cheffile", "deliverfile", "fastfile", "guardfile", "jirafile", "podfile", "puppetfile", "snapfile", "thorfile"]) {
+        } else if name_matches(
+            extension,
+            &[
+                "appfile",
+                "gemfile",
+                "rakefile",
+                "vagrantfile",
+                "berksfile",
+                "brewfile",
+                "capfile",
+                "cheffile",
+                "deliverfile",
+                "fastfile",
+                "guardfile",
+                "jirafile",
+                "podfile",
+                "puppetfile",
+                "snapfile",
+                "thorfile",
+            ],
+        ) {
             Some(Self::Ruby)
         } else {
             None
         }
-    }
-
-    /// Resolve a language from a path or conventional filename.
-    ///
-    /// Compound suffixes are tried before their shorter suffixes, so names
-    /// such as `page.css.erb` and `query.sql.erb` select their host lexer.
-    /// Plain-text extensions intentionally return `None`: callers can use
-    /// `from_extension` directly when they need to distinguish plain text.
-    pub fn from_filename(filename: &str) -> Option<Self> {
-        let basename = filename
-            .rsplit(|byte| matches!(byte, '/' | '\\'))
-            .next()
-            .unwrap_or(filename);
-
-        if basename == "Dockerfile"
-            || (basename.starts_with("Dockerfile.") && basename.len() > "Dockerfile.".len())
-        {
-            return Some(Self::Dockerfile);
-        }
-        if basename.eq_ignore_ascii_case("makefile")
-            || basename.eq_ignore_ascii_case("GNUmakefile")
-            || basename.eq_ignore_ascii_case("ocamlmakefile")
-            || (basename.len() > "makefile.".len()
-                && basename
-                    .as_bytes()
-                    .get(.."makefile".len())
-                    .is_some_and(|prefix| prefix.eq_ignore_ascii_case(b"makefile"))
-                && basename.as_bytes().get("makefile".len()) == Some(&b'.'))
-        {
-            return Some(Self::Makefile);
-        }
-
-        let mut suffix = basename;
-        while let Some((_, remainder)) = suffix.split_once('.') {
-            suffix = remainder;
-            if let Some(language) = Self::from_extension(suffix) {
-                return (language != Self::PlainText).then_some(language);
-            }
-        }
-        None
     }
 
     /// Resolve a language from a shebang line such as `#!/usr/bin/env python3`.
@@ -286,9 +379,7 @@ impl Language {
         };
 
         match name {
-            b"sh" | b"bash" | b"zsh" | b"fish" | b"dash" | b"ash" | b"ksh" => {
-                Some(Self::Bash)
-            }
+            b"sh" | b"bash" | b"zsh" | b"fish" | b"dash" | b"ash" | b"ksh" => Some(Self::Bash),
             b"python" | b"python2" | b"python3" => Some(Self::Python),
             b"node" | b"nodejs" | b"deno" | b"bun" => Some(Self::JavaScript),
             b"xsh" | b"xshi" | b"xsht" => Some(Self::Xsh),
@@ -296,35 +387,58 @@ impl Language {
         }
     }
 
-    /// Resolve a language from a filename, falling back to its first-line shebang.
-    pub fn detect(filename: Option<&str>, first_line: &[u8]) -> Option<Self> {
-        filename
-            .and_then(Self::from_filename)
+    /// Resolve a language from a file extension, falling back to its first-line shebang.
+    pub fn detect(file_ext: Option<&str>, first_line: &[u8]) -> Option<Self> {
+        file_ext
+            .and_then(Self::from_file_ext)
             .or_else(|| Self::from_shebang(first_line))
     }
 
     /// Return the canonical display name.
     pub const fn name(self) -> &'static str {
         match self {
-            Self::Rust => "Rust", Self::Python => "Python", Self::Go => "Go",
-            Self::JavaScript => "JavaScript", Self::TypeScript => "TypeScript",
-            Self::Bash => "Bash", Self::C => "C", Self::Cpp => "C++",
-            Self::CSharp => "C#", Self::Json => "JSON", Self::Yaml => "YAML",
-            Self::Toml => "TOML", Self::Ini => "Config", Self::Makefile => "Makefile",
-            Self::Html => "HTML", Self::Css => "CSS", Self::Scss => "SCSS",
-            Self::Less => "Less", Self::Dockerfile => "Dockerfile",
-            Self::Markdown => "Markdown", Self::Xml => "XML",
-            Self::ActionScript => "ActionScript", Self::AppleScript => "AppleScript",
-            Self::Batch => "Batch File", Self::Clojure => "Clojure", Self::D => "D",
-            Self::Erlang => "Erlang", Self::Graphviz => "Graphviz (DOT)",
-            Self::Groovy => "Groovy", Self::Haskell => "Haskell", Self::Java => "Java",
-            Self::LaTeX => "LaTeX", Self::Lisp => "Lisp", Self::Lua => "Lua",
-            Self::Matlab => "MATLAB", Self::Ocaml => "OCaml", Self::ObjectiveC => "Objective-C",
-            Self::ObjectiveCpp => "Objective-C++", Self::Pascal => "Pascal", Self::Perl => "Perl",
-            Self::Php => "PHP", Self::R => "R", Self::Ruby => "Ruby", Self::Scala => "Scala",
-            Self::Sql => "SQL", Self::Swift => "Swift", Self::Tcl => "Tcl",
-            Self::Kotlin => "Kotlin", Self::Elm => "Elm", Self::Regex => "Regular Expression",
-            Self::PlainText => "Plain Text", Self::Xsh => "XSH",
+            Self::Rust => "Rust",
+            Self::Python => "Python",
+            Self::Go => "Go",
+            Self::JavaScript => "JavaScript",
+            Self::TypeScript => "TypeScript",
+            Self::Bash => "Bash",
+            Self::C => "C",
+            Self::Cpp => "C++",
+            Self::CSharp => "C#",
+            Self::Json => "JSON",
+            Self::Yaml => "YAML",
+            Self::Toml => "TOML",
+            Self::Ini => "Config",
+            Self::Makefile => "Makefile",
+            Self::Html => "HTML",
+            Self::Css => "CSS",
+            Self::Scss => "SCSS",
+            Self::Dockerfile => "Dockerfile",
+            Self::Markdown => "Markdown",
+            Self::Xml => "XML",
+            Self::Batch => "Batch File",
+            Self::Clojure => "Clojure",
+            Self::Erlang => "Erlang",
+            Self::Groovy => "Groovy",
+            Self::Haskell => "Haskell",
+            Self::Java => "Java",
+            Self::LaTeX => "LaTeX",
+            Self::Lisp => "Lisp",
+            Self::Lua => "Lua",
+            Self::Ocaml => "OCaml",
+            Self::ObjectiveC => "Objective-C",
+            Self::ObjectiveCpp => "Objective-C++",
+            Self::Perl => "Perl",
+            Self::Php => "PHP",
+            Self::R => "R",
+            Self::Ruby => "Ruby",
+            Self::Scala => "Scala",
+            Self::Sql => "SQL",
+            Self::Swift => "Swift",
+            Self::Kotlin => "Kotlin",
+            Self::Regex => "Regular Expression",
+            Self::Xsh => "XSH",
         }
     }
 
@@ -333,7 +447,7 @@ impl Language {
         match self {
             Self::Html | Self::Xml => "<!--",
             Self::Css => "/*",
-            Self::Scss | Self::Less => "//",
+            Self::Scss => "//",
             Self::Bash
             | Self::Python
             | Self::Ini
@@ -343,14 +457,13 @@ impl Language {
             | Self::Perl
             | Self::R
             | Self::Ruby
-            | Self::Tcl
             | Self::Batch
             | Self::Xsh => "#",
             Self::Markdown => "<!--",
-            Self::Erlang | Self::LaTeX | Self::Matlab => "%",
+            Self::Erlang | Self::LaTeX => "%",
             Self::Haskell | Self::Lua | Self::Sql => "--",
             Self::Lisp | Self::Clojure => ";",
-            Self::Json | Self::PlainText | Self::Regex => "",
+            Self::Json | Self::Regex => "",
             _ => "//",
         }
     }
@@ -375,22 +488,25 @@ impl Language {
             Self::Markdown => &languages::MARKDOWN_RULES,
             Self::Xsh => &languages::XSH_RULES,
             Self::Clojure | Self::Lisp => &languages::LISP_RULES,
-            Self::Haskell | Self::Lua | Self::Ocaml | Self::Elm => &languages::DASH_RULES,
-            Self::AppleScript => &languages::DASH_RULES,
+            Self::Haskell | Self::Lua | Self::Ocaml => &languages::DASH_RULES,
             Self::Erlang => &languages::ERLANG_RULES,
-            Self::Perl | Self::R | Self::Ruby | Self::Tcl => &languages::HASH_SCRIPT_RULES,
+            Self::Perl | Self::R | Self::Ruby => &languages::HASH_SCRIPT_RULES,
             Self::Sql => &languages::SQL_RULES,
-            Self::LaTeX | Self::Matlab => &languages::TEX_RULES,
+            Self::LaTeX => &languages::TEX_RULES,
             Self::Regex => &languages::C_LIKE_RULES,
-            Self::PlainText => &languages::PLAIN_RULES,
             Self::Xml => &languages::HTML_RULES,
-            Self::Scss | Self::Less => &languages::CSS_RULES,
-            Self::Cpp | Self::CSharp | Self::ActionScript | Self::Batch
-            | Self::D | Self::Graphviz | Self::Groovy | Self::Java
-            | Self::ObjectiveC | Self::ObjectiveCpp | Self::Pascal | Self::Php | Self::Scala
-            | Self::Swift | Self::Kotlin => {
-                &languages::C_LIKE_RULES
-            }
+            Self::Scss => &languages::CSS_RULES,
+            Self::Cpp
+            | Self::CSharp
+            | Self::Batch
+            | Self::Groovy
+            | Self::Java
+            | Self::ObjectiveC
+            | Self::ObjectiveCpp
+            | Self::Php
+            | Self::Scala
+            | Self::Swift
+            | Self::Kotlin => &languages::C_LIKE_RULES,
         }
     }
 }

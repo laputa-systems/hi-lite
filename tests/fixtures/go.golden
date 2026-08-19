@@ -2,15 +2,28 @@
 # Scope categories are normalized to hi-lite semantic kinds.
 
 line 1: 0..7=keyword 7..12=normal
-line 2: 
-line 3: 0..6=keyword 6..7=normal 7..8=string 8..11=string 11..12=string
-line 4: 
-line 5: 0..4=type 4..5=normal 5..9=normal 9..10=normal 10..16=type 16..17=normal 17..18=normal
-line 6: 0..1=normal 1..5=normal 5..7=normal 7..13=type
-line 7: 0..1=normal 1..6=normal 6..7=normal 7..13=type
-line 8: 0..1=normal
-line 9: 
-line 10: 0..4=keyword 4..5=normal 5..9=function 9..10=normal 10..11=normal 11..12=normal 12..13=normal
-line 11: 0..1=normal 1..5=normal 5..6=normal 6..8=operator 8..13=normal 13..14=normal 14..18=normal 18..19=normal 19..20=normal 20..21=string 21..24=string 24..25=string 25..26=normal 26..32=normal 32..33=normal 33..34=normal 34..36=number 36..37=normal
-line 12: 0..4=normal 4..5=operator 5..12=normal 12..13=normal 13..17=normal 17..18=normal 18..19=normal 19..21=comment 21..37=comment
-line 13: 0..1=normal
+line 2:
+line 3: 0..6=keyword 6..7=normal 7..8=normal
+line 4: 0..1=normal 1..2=string 2..5=string 5..6=string
+line 5: 0..1=normal
+line 6:
+line 7: 0..4=type 4..5=normal 5..9=normal 9..10=normal 10..16=type 16..17=normal 17..18=normal
+line 8: 0..1=normal 1..5=normal 5..7=normal 7..13=type
+line 9: 0..1=normal 1..6=normal 6..7=normal 7..13=type
+line 10: 0..1=normal
+line 11:
+line 12: 0..4=keyword 4..5=normal 5..6=normal 6..10=normal 10..15=normal 15..16=normal 16..17=normal 17..22=function 22..23=normal 23..24=normal 24..25=normal 25..31=type 31..32=normal 32..33=normal
+line 13: 0..1=normal 1..7=keyword 7..12=normal 12..13=operator 13..17=normal
+line 14: 0..1=normal
+line 15:
+line 16: 0..4=keyword 4..5=normal 5..14=function 14..15=normal 15..19=normal 19..20=normal 20..26=type 26..27=normal 27..28=normal 28..33=normal 33..34=normal
+line 17: 0..1=normal 1..7=keyword 7..12=normal 12..13=normal 13..17=normal 17..18=normal 18..23=normal 23..24=normal 24..30=normal 30..31=normal 31..32=normal 32..34=number 34..35=normal
+line 18: 0..1=normal
+line 19:
+line 20: 0..4=keyword 4..5=normal 5..9=function 9..10=normal 10..11=normal 11..12=normal 12..13=normal
+line 21: 0..1=normal 1..5=normal 5..6=normal 6..8=operator 8..13=normal 13..14=normal 14..18=normal 18..19=normal 19..20=normal 20..21=string 21..24=string 24..25=string 25..26=normal 26..32=normal 32..33=normal 33..34=normal 34..36=number 36..37=normal
+line 22: 0..1=normal 1..4=keyword 4..5=normal 5..10=normal 10..11=normal 11..13=operator 13..14=normal 14..15=number 15..23=normal 23..25=operator 25..26=normal 26..27=number 27..29=normal 29..30=normal
+line 23: 0..5=normal 5..6=operator 6..13=normal 13..14=normal 14..18=normal 18..19=normal 19..20=normal 20..22=comment 22..38=comment
+line 24: 0..2=normal 2..7=keyword
+line 25: 0..1=normal 1..2=normal
+line 26: 0..1=normal

@@ -70,7 +70,9 @@ pub(crate) static RULES: RuleSet = RuleSet {
     ],
     constants: &[],
     macros: &[],
-    operators: &["&&", "||", "!==", "===", "!=", "==", "<=", ">=", "=>", "=", "."],
+    operators: &[
+        "&&", "||", "!==", "===", "!=", "==", "<=", ">=", "=>", "=", ".",
+    ],
     highlight_numbers: true,
     highlight_upper_constants: true,
     highlight_fn_calls: true,

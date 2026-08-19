@@ -23,18 +23,18 @@ per-byte representation. `byte_kinds_to_char_kinds_into` is available when a
 renderer needs UTF-8 character or two-column tab entries. Bracket and quote
 matching accept line callbacks rather than an editor buffer.
 
-`Language::from_name` accepts the programming-language names from syntect's
-default syntax set (including C++, Java, Ruby, SQL, Haskell, Lua, and the
-embedded/template forms) plus common aliases such as `rs`, `py`, `js`, `ts`,
-`sh`, `yml`, and `md`. These languages reuse a small set of static scanner rule
-families; only the languages that need multiline or structural behavior have a
-specialized lexer. Rule tables and lexer modes are private implementation
-details; the crate intentionally does not expose a grammar DSL, themes, ANSI
-colors, or editor abstractions.
+`Language::from_name` accepts hi-lite's maintained language registry, including
+C++, Java, Ruby, SQL, Haskell, Lua, and embedded/template forms, plus common
+aliases such as `rs`, `py`, `js`, `ts`, `sh`, `yml`, and `md`. These languages
+reuse a small set of static scanner rule families; only the languages that need
+multiline or structural behavior have a specialized lexer. Unknown and
+plain-text names/extensions return `None`. Rule tables and lexer modes are
+private implementation details; the crate intentionally does not expose a
+grammar DSL, themes, ANSI colors, or editor abstractions.
 
-`Language::from_filename`, `Language::from_shebang`, and `Language::detect` own
-filename, shebang, and comment-delimiter policy for clients. Callers do not
-need a second supported-language registry.
+`Language::from_file_ext`, `Language::from_shebang`, and `Language::detect` own
+file-extension, shebang, and comment-delimiter policy for clients. Callers do
+not need a second supported-language registry.
 
 `diff` computes borrowed line operations using the same LCS tie-breaking and
 trailing-newline markers as `fx`. `diff_preview` or reusable `DiffScratch`
@@ -51,8 +51,8 @@ The checked-in golden corpus has warm (reused highlighter and scratch) and cold
 cargo bench --bench hi_lite
 ```
 
-The crate benchmark is intentionally weighted toward small, syntax-complete
-snippets. The warm aggregate is the steady-state target; cold runs expose
+The crate benchmark is weighted toward the substantial syntax-complete corpus
+and its shared language probe. The warm aggregate is the steady-state target; cold runs expose
 allocation costs for callers that do not retain their scratch buffer. The
 `hi_lite_highlight_single_lines_{warm,cold}` pair isolates one representative
 line from each fixture for latency-sensitive editor use.

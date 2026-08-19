@@ -65,24 +65,38 @@ fn public_api_supports_stateless_lines_runs_and_char_mapping() {
 fn language_aliases_are_small_and_explicit() {
     assert_eq!(Language::from_name("rs"), Some(Language::Rust));
     assert_eq!(Language::from_name("shell"), Some(Language::Bash));
-    assert_eq!(Language::from_extension(".md"), Some(Language::Markdown));
+    assert_eq!(Language::from_file_ext(".md"), Some(Language::Markdown));
     assert_eq!(Language::from_name("unknown"), None);
+
+    for name in [
+        "actionscript",
+        "applescript",
+        "d",
+        "elm",
+        "graphviz",
+        "less",
+        "matlab",
+        "pascal",
+        "tcl",
+    ] {
+        assert_eq!(Language::from_name(name), None, "removed language: {name}");
+    }
 }
 
 #[test]
-fn language_detection_owns_filename_and_shebang_mapping() {
-    assert_eq!(Language::from_filename("src/main.rs"), Some(Language::Rust));
+fn language_detection_owns_file_extension_and_shebang_mapping() {
+    assert_eq!(Language::from_file_ext("rs"), Some(Language::Rust));
+    assert_eq!(Language::from_file_ext("css.erb"), Some(Language::Css));
     assert_eq!(
-        Language::from_filename("templates/page.css.erb"),
-        Some(Language::Css)
-    );
-    assert_eq!(
-        Language::from_filename("Dockerfile.release"),
+        Language::from_file_ext("Dockerfile"),
         Some(Language::Dockerfile)
     );
-    assert_eq!(Language::from_filename("GNUmakefile"), Some(Language::Makefile));
-    assert_eq!(Language::from_filename("build.xsh"), Some(Language::Xsh));
-    assert_eq!(Language::from_filename("README.txt"), None);
+    assert_eq!(
+        Language::from_file_ext("GNUmakefile"),
+        Some(Language::Makefile)
+    );
+    assert_eq!(Language::from_file_ext("xsh"), Some(Language::Xsh));
+    assert_eq!(Language::from_file_ext("txt"), None);
 
     assert_eq!(
         Language::from_shebang(b"#!/usr/bin/python3.11"),
@@ -102,11 +116,11 @@ fn language_detection_owns_filename_and_shebang_mapping() {
     );
     assert_eq!(Language::from_shebang(b"not a shebang"), None);
     assert_eq!(
-        Language::detect(Some("unknown.file"), b"#!/bin/bash"),
+        Language::detect(Some("unknown"), b"#!/bin/bash"),
         Some(Language::Bash)
     );
     assert_eq!(
-        Language::detect(Some("main.rs"), b"#!/bin/bash"),
+        Language::detect(Some("rs"), b"#!/bin/bash"),
         Some(Language::Rust)
     );
 }
@@ -118,7 +132,7 @@ fn language_comment_delimiters_are_canonical() {
     assert_eq!(Language::Html.comment(), "<!--");
     assert_eq!(Language::Markdown.comment(), "<!--");
     assert_eq!(Language::Css.comment(), "/*");
-    assert_eq!(Language::PlainText.comment(), "");
+    assert_eq!(Language::Regex.comment(), "");
 }
 
 #[test]
@@ -128,32 +142,102 @@ fn syntect_programming_syntax_names_have_dependency_free_lexers() {
     // their reusable host lexer (for example JSP to HTML and SQL (Rails) to
     // SQL).
     let names = [
-        "Plain Text", "ASP", "HTML (ASP)", "ActionScript", "AppleScript", "Batch File",
-        "NAnt Build File", "C#", "C++", "C", "Clojure", "D", "Diff", "Erlang",
-        "HTML (Erlang)", "Go", "Graphviz (DOT)", "Groovy", "HTML", "Haskell",
-        "Literate Haskell", "Java Server Page (JSP)", "Java", "JavaDoc", "JSON",
-        "Regular Expressions (Javascript)", "BibTeX", "LaTeX Log", "LaTeX", "TeX",
-        "Lisp", "Lua", "Make Output", "Makefile", "Markdown", "MultiMarkdown", "MATLAB",
-        "OCaml", "OCamllex", "OCamlyacc", "camlp4", "Objective-C++", "Objective-C",
-        "PHP Source", "PHP", "Pascal", "Perl", "Python", "Regular Expressions (Python)",
-        "R Console", "R", "Rd (R Documentation)", "HTML (Rails)", "JavaScript (Rails)",
-        "Ruby Haml", "Ruby on Rails", "SQL (Rails)", "Regular Expression",
-        "reStructuredText", "Ruby", "Cargo Build Results", "Rust", "SQL", "Scala",
-        "Bourne Again Shell (bash)", "Shell-Unix-Generic", "commands-builtin-shell-bash",
-        "HTML (Tcl)", "Tcl", "Textile", "XML", "YAML",
+        "ASP",
+        "HTML (ASP)",
+        "Batch File",
+        "C#",
+        "C++",
+        "C",
+        "Clojure",
+        "Erlang",
+        "HTML (Erlang)",
+        "Go",
+        "Groovy",
+        "HTML",
+        "Haskell",
+        "Literate Haskell",
+        "Java Server Page (JSP)",
+        "Java",
+        "JavaDoc",
+        "JSON",
+        "Regular Expressions (Javascript)",
+        "BibTeX",
+        "LaTeX Log",
+        "LaTeX",
+        "TeX",
+        "Lisp",
+        "Lua",
+        "Makefile",
+        "Markdown",
+        "MultiMarkdown",
+        "OCaml",
+        "OCamllex",
+        "OCamlyacc",
+        "camlp4",
+        "Objective-C++",
+        "Objective-C",
+        "PHP Source",
+        "PHP",
+        "Perl",
+        "Python",
+        "Regular Expressions (Python)",
+        "R Console",
+        "R",
+        "Rd (R Documentation)",
+        "HTML (Rails)",
+        "JavaScript (Rails)",
+        "Ruby Haml",
+        "Ruby on Rails",
+        "SQL (Rails)",
+        "Regular Expression",
+        "reStructuredText",
+        "Ruby",
+        "Rust",
+        "SQL",
+        "Scala",
+        "Bourne Again Shell (bash)",
+        "Shell-Unix-Generic",
+        "commands-builtin-shell-bash",
+        "HTML (Tcl)",
+        "Textile",
+        "XML",
+        "YAML",
     ];
     for name in names {
-        assert!(Language::from_name(name).is_some(), "missing syntax: {name}");
+        assert!(
+            Language::from_name(name).is_some(),
+            "missing syntax: {name}"
+        );
     }
 }
 
 #[test]
 fn generic_language_families_share_the_common_scanner() {
     let cases = [
-        (Language::Java, b"public int answer() { return 42; }".as_slice(), 0, Kind::Keyword),
-        (Language::Ruby, b"value = 42 # comment".as_slice(), 8, Kind::Number),
-        (Language::Haskell, b"value = 42 -- comment".as_slice(), 8, Kind::Number),
-        (Language::Sql, b"select count from users where id = 42".as_slice(), 0, Kind::Keyword),
+        (
+            Language::Java,
+            b"public int answer() { return 42; }".as_slice(),
+            0,
+            Kind::Keyword,
+        ),
+        (
+            Language::Ruby,
+            b"value = 42 # comment".as_slice(),
+            8,
+            Kind::Number,
+        ),
+        (
+            Language::Haskell,
+            b"value = 42 -- comment".as_slice(),
+            8,
+            Kind::Number,
+        ),
+        (
+            Language::Sql,
+            b"select count from users where id = 42".as_slice(),
+            0,
+            Kind::Keyword,
+        ),
     ];
     for (language, line, offset, expected) in cases {
         let mut highlighter = Highlighter::new(language);
@@ -166,19 +250,48 @@ fn generic_language_families_share_the_common_scanner() {
 #[test]
 fn every_public_language_round_trips_its_canonical_name() {
     let languages = [
-        Language::Rust, Language::Python, Language::Go, Language::JavaScript,
-        Language::TypeScript, Language::Bash, Language::C, Language::Cpp,
-        Language::CSharp, Language::Json, Language::Yaml, Language::Toml,
-        Language::Ini, Language::Makefile, Language::Html, Language::Css,
-        Language::Scss, Language::Less, Language::Dockerfile, Language::Markdown,
-        Language::Xml, Language::ActionScript, Language::AppleScript, Language::Batch,
-        Language::Clojure, Language::D, Language::Erlang, Language::Graphviz,
-        Language::Groovy, Language::Haskell, Language::Java, Language::LaTeX,
-        Language::Lisp, Language::Lua, Language::Matlab, Language::Ocaml,
-        Language::ObjectiveC, Language::ObjectiveCpp, Language::Pascal, Language::Perl,
-        Language::Php, Language::R, Language::Ruby, Language::Scala, Language::Sql,
-        Language::Swift, Language::Tcl, Language::Kotlin, Language::Elm, Language::Regex,
-        Language::PlainText, Language::Xsh,
+        Language::Rust,
+        Language::Python,
+        Language::Go,
+        Language::JavaScript,
+        Language::TypeScript,
+        Language::Bash,
+        Language::C,
+        Language::Cpp,
+        Language::CSharp,
+        Language::Json,
+        Language::Yaml,
+        Language::Toml,
+        Language::Ini,
+        Language::Makefile,
+        Language::Html,
+        Language::Css,
+        Language::Scss,
+        Language::Dockerfile,
+        Language::Markdown,
+        Language::Xml,
+        Language::Batch,
+        Language::Clojure,
+        Language::Erlang,
+        Language::Groovy,
+        Language::Haskell,
+        Language::Java,
+        Language::LaTeX,
+        Language::Lisp,
+        Language::Lua,
+        Language::Ocaml,
+        Language::ObjectiveC,
+        Language::ObjectiveCpp,
+        Language::Perl,
+        Language::Php,
+        Language::R,
+        Language::Ruby,
+        Language::Scala,
+        Language::Sql,
+        Language::Swift,
+        Language::Kotlin,
+        Language::Regex,
+        Language::Xsh,
     ];
     for language in languages {
         assert_eq!(Language::from_name(language.name()), Some(language));
@@ -191,7 +304,6 @@ fn syntect_extensions_resolve_to_host_or_generic_lexers() {
         (".cpp", Language::Cpp),
         (".csx", Language::CSharp),
         ("GNUmakefile", Language::Makefile),
-        (".txt", Language::PlainText),
         (".asa", Language::Html),
         (".gradle", Language::Groovy),
         (".lhs", Language::Haskell),
@@ -205,6 +317,17 @@ fn syntect_extensions_resolve_to_host_or_generic_lexers() {
         (".textile", Language::Markdown),
     ];
     for (extension, language) in cases {
-        assert_eq!(Language::from_extension(extension), Some(language), "{extension}");
+        assert_eq!(
+            Language::from_file_ext(extension),
+            Some(language),
+            "{extension}"
+        );
+    }
+    for extension in [".txt", ".diff", ".patch", ".build"] {
+        assert_eq!(
+            Language::from_file_ext(extension),
+            None,
+            "removed plain text mode: {extension}"
+        );
     }
 }

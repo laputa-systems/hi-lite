@@ -1,13 +1,26 @@
 // A complete JavaScript fixture with a template literal.
+import { readFile } from "node:fs/promises";
+
+const defaultLimit = 42;
+
 class User {
-  constructor(name, count = 42) {
+  constructor(name, count = defaultLimit) {
     this.name = name;
-    this.count = count;
+    this.value = count;
   }
 
   label() {
-    return `${this.name} (${this.count})`;
+    return `${this.name} (${this.value})`;
   }
+
+  countValue() {
+    return this.value;
+  }
+}
+
+function loadUsers(path) {
+  const text = path;
+  return text;
 }
 
 export const user = new User("Ada");

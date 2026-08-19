@@ -3,14 +3,35 @@
 
 line 1: 0..3=string 3..56=string 56..59=string
 line 2: 0..4=keyword 4..5=normal 5..16=normal 16..17=normal 17..23=keyword 23..24=normal 24..33=normal
-line 3: 
-line 4: 0..1=normal 1..10=normal
-line 5: 0..5=keyword 5..6=normal 6..10=normal 10..11=normal
-line 6: 0..4=normal 4..8=normal 8..9=normal 9..10=normal 10..13=type
-line 7: 0..4=normal 4..9=normal 9..10=normal 10..11=normal 11..14=type 14..15=normal 15..16=operator 16..17=normal 17..19=number
-line 8: 
-line 9: 0..4=normal 4..7=keyword 7..8=normal 8..13=normal 13..14=bracket 14..18=normal 18..19=bracket 19..20=normal 20..22=normal 22..23=normal 23..26=type 26..27=normal
-line 10: 0..8=normal 8..14=keyword 14..15=normal 15..16=string 16..17=string 17..18=string 18..22=string 22..23=string 23..27=string 27..28=string 28..30=string 30..31=string 31..35=string 35..36=string 36..41=string 41..42=string 42..43=string 43..44=string
-line 11: 
-line 12: 0..2=keyword 2..3=normal 3..11=normal 11..12=normal 12..14=operator 14..15=normal 15..16=string 16..24=string 24..25=string 25..26=bracket
-line 13: 0..4=normal 4..9=function 9..10=normal 10..14=normal 14..15=normal 15..16=string 16..19=string 19..20=string 20..21=normal 21..22=operator 22..27=normal 27..28=normal 28..29=normal 29..30=normal 30..32=normal 32..33=comment 33..47=comment
+line 3: 0..4=keyword 4..5=normal 5..12=normal 12..13=normal 13..19=keyword 19..20=normal 20..24=normal
+line 4: 0..4=keyword 4..5=normal 5..11=normal 11..12=normal 12..18=keyword 18..19=normal 19..27=normal
+line 5:
+line 6: 0..1=normal 1..10=normal
+line 7: 0..5=keyword 5..6=normal 6..10=normal 10..11=normal
+line 8: 0..4=normal 4..8=normal 8..9=normal 9..10=normal 10..13=type
+line 9: 0..4=normal 4..9=normal 9..10=normal 10..11=normal 11..14=type 14..15=normal 15..16=operator 16..17=normal 17..19=number
+line 10:
+line 11: 0..4=normal 4..7=keyword 7..8=normal 8..13=normal 13..14=bracket 14..18=normal 18..19=bracket 19..20=normal 20..22=normal 22..23=normal 23..26=type 26..27=normal
+line 12: 0..8=normal 8..14=keyword 14..15=normal 15..16=string 16..17=string 17..18=string 18..22=string 22..23=string 23..27=string 27..28=string 28..30=string 30..31=string 31..35=string 35..36=string 36..41=string 41..42=string 42..43=string 43..44=string
+line 13:
+line 14: 0..4=normal 4..7=keyword 7..8=normal 8..17=normal 17..18=bracket 18..21=normal 21..22=normal 22..23=normal 23..27=normal 27..28=normal 28..29=normal 29..32=type 32..33=bracket 33..34=normal 34..36=normal 36..37=normal 37..38=string 38..42=string 42..43=string 43..44=normal
+line 15: 0..8=normal 8..12=normal 12..14=normal 14..19=normal 19..20=normal 20..21=operator 21..22=normal 22..26=normal 26..27=operator 27..32=normal 32..33=normal 33..34=string 34..35=string 35..36=string 36..37=normal 37..38=normal 38..46=normal 46..47=operator 47..48=number 48..49=normal
+line 16: 0..8=normal 8..14=keyword 14..15=normal 15..19=normal
+line 17:
+line 18:
+line 19: 0..3=keyword 3..4=normal 4..14=normal 14..15=bracket 15..19=normal 19..20=normal 20..21=normal 21..25=normal 25..26=bracket 26..27=normal 27..29=normal 29..30=normal 30..38=normal 38..39=bracket 39..43=normal 43..44=bracket 44..45=normal
+line 20: 0..4=normal 4..10=normal 10..11=normal 11..12=operator 12..13=normal 13..17=normal
+line 21: 0..4=normal 4..7=keyword 7..8=normal 8..12=normal 12..13=normal 13..15=keyword 15..16=normal 16..22=normal 22..23=normal
+line 22: 0..8=normal 8..10=keyword 10..11=normal 11..15=normal 15..16=bracket
+line 23: 0..12=normal 12..17=keyword 17..18=normal 18..22=normal 22..23=operator 23..32=normal 32..33=normal 33..37=normal 37..38=operator 38..43=normal 43..44=normal 44..45=normal 45..46=normal
+line 24:
+line 25:
+line 26: 0..3=keyword 3..4=normal 4..13=normal 13..14=bracket 14..19=normal 19..20=normal 20..21=normal 21..29=normal 29..30=bracket 30..34=normal 34..35=bracket 35..36=bracket 36..37=normal 37..39=normal 39..40=normal 40..44=type 44..45=bracket 45..48=type 48..50=normal 50..53=type 53..54=bracket 54..55=normal
+line 27: 0..4=normal 4..10=keyword 10..11=normal 11..16=normal
+line 28:
+line 29:
+line 30: 0..2=keyword 2..3=normal 3..11=normal 11..12=normal 12..14=operator 14..15=normal 15..16=string 16..24=string 24..25=string 25..26=bracket
+line 31: 0..4=normal 4..9=normal 9..10=normal 10..11=operator 11..12=normal 12..16=normal 16..17=normal 17..18=string 18..21=string 21..22=string 22..23=normal
+line 32: 0..4=normal 4..7=keyword 7..8=normal 8..13=normal 13..14=normal 14..16=keyword 16..17=normal 17..22=normal
+line 33: 0..8=normal 8..13=function 13..14=normal 14..15=string 15..16=string 16..17=string 17..22=string 22..23=string 23..25=string 25..26=string 26..30=string 30..31=string 31..36=string 36..37=string 37..38=string 38..39=string 39..40=string 40..41=normal 41..43=normal 43..44=comment 44..58=comment
+line 34: 0..4=normal 4..9=function 9..10=normal 10..15=normal 15..16=normal
