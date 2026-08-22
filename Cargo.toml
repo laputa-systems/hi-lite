@@ -1,9 +1,14 @@
 [package]
-name = "hi-lite"
+name = "laputa-hi-lite"
 version = "0.1.0"
 edition = "2024"
 description = "Dependency-free line-oriented syntax highlighting"
-license = "MIT OR Apache-2.0"
+license = "MIT"
+
+# Keep the published package name distinct from the Rust crate name used by
+# consumers (`use hi_lite::...`).
+[lib]
+name = "hi_lite"
 
 [dev-dependencies]
 rustybench = "0.1"

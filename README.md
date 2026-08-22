@@ -4,6 +4,15 @@
 boundary is bytes plus a language and opaque lexical state; presentation,
 documents, caches, and terminal rendering remain owned by callers.
 
+The package is published as `laputa-hi-lite`, while its library target is named
+`hi_lite`. Add the package name to a consumer's `Cargo.toml`, then import the
+library by its Rust crate name:
+
+```toml
+[dependencies]
+laputa-hi-lite = "0.1"
+```
+
 ```rust
 use hi_lite::{Highlighter, Kind, Language};
 
