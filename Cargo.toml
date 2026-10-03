@@ -4,7 +4,7 @@ version = "0.2.0"
 edition = "2024"
 description = "Dependency-free line-oriented syntax highlighting"
 license = "MIT"
-exclude = ["tools/bump_minor_release.py"]
+exclude = ["tools/bump_minor_release.sh"]
 
 # Keep the published package name distinct from the Rust crate name used by
 # consumers (`use hi_lite::...`).
