@@ -15,9 +15,9 @@ line 11: 0..1=normal 1..8=normal 8..9=normal 9..16=normal 16..17=normal 17..25=n
 line 12: 0..1=normal 1..8=normal 8..9=normal 9..16=normal 16..17=normal 17..25=normal 25..26=normal
 line 13:
 line 14: 0..3=string 3..7=string
-line 15: 0..33=string
-line 16: 0..23=string
-line 17: 0..1=string
+line 15: 0..2=keyword 2..3=normal 3..8=function 8..9=bracket 9..17=normal 17..18=operator 18..19=bracket 19..22=type 22..24=bracket 24..25=normal 25..27=operator 27..28=normal 28..31=type 31..32=normal 32..33=bracket
+line 16: 0..11=normal 11..15=function 15..17=bracket 17..18=normal 18..21=function 21..23=bracket
+line 17: 0..1=bracket
 line 18: 0..3=string
 line 19:
 line 20: 0..2=keyword 2..3=keyword 3..8=keyword

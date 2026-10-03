@@ -60,7 +60,47 @@ enum StateKind {
     MultiLineString(u8),
     RustRawString(u8),
     CssBlock,
-    FencedCodeBlock,
+    FencedCodeBlock {
+        language: Option<crate::Language>,
+        code_state: FencedCodeState,
+    },
+}
+
+/// Keeps embedded lexer state small and copyable inside Markdown checkpoints.
+#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
+enum FencedCodeState {
+    #[default]
+    Normal,
+    BlockComment,
+    RustBlockComment(u16),
+    MultiLineString(u8),
+    RustRawString(u8),
+    CssBlock,
+}
+
+impl FencedCodeState {
+    fn into_state_kind(self) -> StateKind {
+        match self {
+            Self::Normal => StateKind::Normal,
+            Self::BlockComment => StateKind::BlockComment,
+            Self::RustBlockComment(depth) => StateKind::RustBlockComment(depth),
+            Self::MultiLineString(index) => StateKind::MultiLineString(index),
+            Self::RustRawString(hashes) => StateKind::RustRawString(hashes),
+            Self::CssBlock => StateKind::CssBlock,
+        }
+    }
+
+    fn from_state_kind(state: StateKind) -> Self {
+        match state {
+            StateKind::Normal => Self::Normal,
+            StateKind::BlockComment => Self::BlockComment,
+            StateKind::RustBlockComment(depth) => Self::RustBlockComment(depth),
+            StateKind::MultiLineString(index) => Self::MultiLineString(index),
+            StateKind::RustRawString(hashes) => Self::RustRawString(hashes),
+            StateKind::CssBlock => Self::CssBlock,
+            StateKind::FencedCodeBlock { .. } => Self::Normal,
+        }
+    }
 }
 
 /// Opaque state carried from one source line to the next.
@@ -343,7 +383,7 @@ fn highlight_line_code(
         }
         StateKind::CssBlock => {}
         StateKind::Normal => {}
-        StateKind::FencedCodeBlock => {}
+        StateKind::FencedCodeBlock { .. } => {}
     }
 
     // Main loop
@@ -737,12 +777,13 @@ fn highlight_python_structure(line: &[u8], hl: &mut [Kind]) {
             .iter()
             .rposition(|&byte| byte == b':')
             .is_some_and(|colon| trimmed[colon + 1..].iter().all(u8::is_ascii_whitespace))
-        && let Some(colon) = trimmed.iter().rposition(|&byte| byte == b':') {
-            let absolute = indent + colon;
-            if hl[absolute] == Kind::Normal {
-                hl[absolute] = Kind::Bracket;
-            }
+        && let Some(colon) = trimmed.iter().rposition(|&byte| byte == b':')
+    {
+        let absolute = indent + colon;
+        if hl[absolute] == Kind::Normal {
+            hl[absolute] = Kind::Bracket;
         }
+    }
     let mut index = 0;
     // Keep punctuation, dotted-call cleanup, and capitalized-call cleanup in
     // one walk after the definition and f-string prefix passes above.
@@ -1037,15 +1078,17 @@ fn highlight_makefile_structure(line: &[u8], hl: &mut [Kind]) {
         .count();
     if indent == 0 && !line.starts_with(b"#") {
         if let Some(colon) = line.iter().position(|&byte| byte == b':')
-            && colon > 0 && line.get(colon + 1) != Some(&b'=') {
-                mark_range(hl, 0, colon, Kind::Function);
-                hl[colon] = Kind::Operator;
-                let mut prerequisite_start = colon + 1;
-                while line.get(prerequisite_start) == Some(&b' ') {
-                    prerequisite_start += 1;
-                }
-                mark_range(hl, prerequisite_start, line.len(), Kind::String);
+            && colon > 0
+            && line.get(colon + 1) != Some(&b'=')
+        {
+            mark_range(hl, 0, colon, Kind::Function);
+            hl[colon] = Kind::Operator;
+            let mut prerequisite_start = colon + 1;
+            while line.get(prerequisite_start) == Some(&b' ') {
+                prerequisite_start += 1;
             }
+            mark_range(hl, prerequisite_start, line.len(), Kind::String);
+        }
         if let Some(assign) = line.windows(2).position(|pair| pair == b":=") {
             let mut value_start = assign + 2;
             while line.get(value_start) == Some(&b' ') {
@@ -1997,10 +2040,21 @@ fn highlight_ini_inline_comment(line: &[u8], hl: &mut [Kind], start: usize) {
 
 // -- Markdown highlighting --------------------------------------------------
 
+fn markdown_fence_language(line: &[u8]) -> Option<crate::Language> {
+    let info = line.strip_prefix(b"```")?.trim_ascii_start();
+    let name = info
+        .split(|byte| byte.is_ascii_whitespace())
+        .next()
+        .filter(|name| !name.is_empty())?;
+    let name = std::str::from_utf8(name).ok()?;
+    crate::Language::from_name(name)
+}
+
 fn highlight_line_markdown(
     line: &[u8],
     state: StateKind,
     rules: &RuleSet,
+    user_types: &[Vec<u8>],
     hl: &mut [Kind],
 ) -> StateKind {
     let len = line.len();
@@ -2008,17 +2062,37 @@ fn highlight_line_markdown(
     let block_close = rules.block_comment.1.as_bytes();
 
     // Fenced code block: entering or continuing
-    if state == StateKind::FencedCodeBlock {
+    if let StateKind::FencedCodeBlock {
+        language,
+        code_state,
+    } = state
+    {
         if len >= 3 && line[0] == b'`' && line[1] == b'`' && line[2] == b'`' {
             for b in &mut hl[..len] {
                 *b = Kind::String;
             }
             return StateKind::Normal;
         }
+        if let Some(language) = language {
+            let code_state = highlight_line_into_rules(
+                line,
+                code_state.into_state_kind(),
+                language.rules(),
+                user_types,
+                hl,
+            );
+            return StateKind::FencedCodeBlock {
+                language: Some(language),
+                code_state: FencedCodeState::from_state_kind(code_state),
+            };
+        }
         for b in &mut hl[..len] {
             *b = Kind::String;
         }
-        return StateKind::FencedCodeBlock;
+        return StateKind::FencedCodeBlock {
+            language,
+            code_state,
+        };
     }
 
     // Block comment continuation
@@ -2044,7 +2118,10 @@ fn highlight_line_markdown(
         for b in &mut hl[..len] {
             *b = Kind::String;
         }
-        return StateKind::FencedCodeBlock;
+        return StateKind::FencedCodeBlock {
+            language: markdown_fence_language(line),
+            code_state: FencedCodeState::Normal,
+        };
     }
 
     // Horizontal rules: ---, ***, ___ (optionally with spaces)
@@ -2446,7 +2523,7 @@ fn highlight_line_into_rules(
         "highlight output must have one slot per input byte"
     );
     let next_state = match rules.lexer_kind {
-        LexerKind::Markdown => highlight_line_markdown(line, state, rules, out),
+        LexerKind::Markdown => highlight_line_markdown(line, state, rules, user_types, out),
         LexerKind::Json => highlight_line_json(line, state, out),
         LexerKind::Yaml => highlight_line_yaml(line, state, out),
         LexerKind::Ini => highlight_line_ini(line, state, out),
@@ -3327,8 +3404,8 @@ mod tests {
 
         // line 12: fenced code open — all String, state enters FencedCodeBlock
         assert!(hls[12].iter().all(|&h| h == Kind::String), "fence open");
-        // line 13: inside fenced block — all String
-        assert!(hls[13].iter().all(|&h| h == Kind::String), "fenced content");
+        // line 13: inside a Rust fence — Rust tokens are highlighted
+        assert_range(&hls[13], 0..2, Kind::Keyword, "Rust fence keyword");
         // line 14: fence close — all String
         assert!(hls[14].iter().all(|&h| h == Kind::String), "fence close");
 
@@ -3755,8 +3832,37 @@ mod tests {
             hls[0].iter().all(|&h| h == Kind::String),
             "fence open with lang"
         );
-        assert!(hls[1].iter().all(|&h| h == Kind::String), "fenced content");
+        assert_range(&hls[1], 0..2, Kind::Keyword, "Rust keyword in fence");
+        assert_eq!(hls[1][2], Kind::Normal, "space after Rust keyword");
+        assert_range(&hls[1], 10..11, Kind::Bracket, "Rust block opener in fence");
         assert!(hls[2].iter().all(|&h| h == Kind::String), "fence close");
+    }
+
+    #[test]
+    fn test_markdown_fenced_code_block_keeps_embedded_state() {
+        let lines: &[&[u8]] = &[
+            b"```python",
+            b"message = \"\"\"hello",
+            b"still string\"\"\"",
+            b"```",
+        ];
+        let hls = hl_multiline(lines, &MARKDOWN_RULES);
+        assert_range(&hls[1], 10..18, Kind::String, "Python string start in fence");
+        assert!(
+            hls[2].iter().all(|&kind| kind == Kind::String),
+            "Python multiline string continues in fence"
+        );
+        assert!(hls[3].iter().all(|&kind| kind == Kind::String), "fence close");
+    }
+
+    #[test]
+    fn test_markdown_unknown_fence_remains_plain_code() {
+        let lines: &[&[u8]] = &[b"```unknown-language", b"fn main() {}", b"```"];
+        let hls = hl_multiline(lines, &MARKDOWN_RULES);
+        assert!(
+            hls[1].iter().all(|&kind| kind == Kind::String),
+            "unknown fence language remains plain code"
+        );
     }
 
     #[test]
