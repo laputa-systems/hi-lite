@@ -5,7 +5,7 @@ LC_ALL=C
 export LC_ALL
 
 fail() {
-    printf '%s\n' "make bump: $*" >&2
+    printf '%s\n' "make publish: $*" >&2
     exit 1
 }
 

@@ -1,8 +1,8 @@
-.PHONY: lint bump
+.PHONY: lint publish
 
 lint:
 	cargo fmt --all
 	cargo clippy --fix --allow-dirty --all-targets --all-features -- --deny warnings
 
-bump:
+publish:
 	./tools/bump_minor_release.sh
