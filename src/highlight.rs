@@ -1246,9 +1246,10 @@ fn is_base_digit(byte: u8, base: u8) -> bool {
 
 fn consume_digits(line: &[u8], mut pos: usize, base: u8) -> usize {
     while pos < line.len() {
-        if is_base_digit(line[pos], base) {
-            pos += 1;
-        } else if line[pos] == b'_' && pos + 1 < line.len() && is_base_digit(line[pos + 1], base) {
+        // A digit, or an underscore separator that is followed by a digit.
+        let is_digit = is_base_digit(line[pos], base);
+        let is_separator = line[pos] == b'_' && pos + 1 < line.len() && is_base_digit(line[pos + 1], base);
+        if is_digit || is_separator {
             pos += 1;
         } else {
             break;
