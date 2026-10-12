@@ -14,6 +14,10 @@ name = "hi_lite"
 
 [dev-dependencies]
 rustybench = "0.1"
+# Dev-only: `examples/gen_xsh.rs` parses the XSH registry source with `syn` to
+# regenerate the vocabulary region of `src/languages/xsh.rs`.
+syn = { version = "2", features = ["full", "visit"] }
+proc-macro2 = "1"
 
 [[bench]]
 name = "hi_lite"
