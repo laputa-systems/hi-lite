@@ -1,4 +1,7 @@
-.PHONY: lint publish
+.PHONY: test lint publish
+
+test:
+	cargo test --locked
 
 lint:
 	cargo fmt --all

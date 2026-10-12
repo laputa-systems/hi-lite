@@ -4,6 +4,7 @@ version = "0.3.0"
 edition = "2024"
 description = "Dependency-free line-oriented syntax highlighting"
 license = "MIT"
+repository = "https://github.com/joshuarli/hi-lite"
 exclude = ["tools/bump_minor_release.sh"]
 
 # Keep the published package name distinct from the Rust crate name used by

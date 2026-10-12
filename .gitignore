@@ -1,2 +1,3 @@
-target
-tools/hi-lite-syntect/target
+/target
+.DS_Store
+/tools/hi-lite-syntect/target
