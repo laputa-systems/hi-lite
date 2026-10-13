@@ -1,11 +1,6 @@
 use crate::languages;
 
-/// A dependency-free syntax selection.
-///
-/// The variants are the maintained language modes exposed by hi-lite. Most
-/// intentionally share one of the generic rule tables in `languages::generic`;
-/// specialized variants retain the richer scanners already present for Rust,
-/// Python, markup, and build files.
+/// A supported syntax mode for the line-oriented highlighter.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Language {
     Rust,

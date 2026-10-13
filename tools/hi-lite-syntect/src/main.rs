@@ -1,8 +1,8 @@
 //! One-shot syntect oracle used only by `generate-hi-lite-goldens.sh`.
 //!
-//! This project is deliberately outside the workspace, so syntect never
-//! becomes a dependency of `e` or `hi-lite`. It converts syntect scope stacks
-//! into the deliberately smaller `hi-lite::Kind` vocabulary.
+//! This project is deliberately outside the hi-lite package, so syntect stays
+//! limited to the fixture generator. The tool converts syntect scope stacks
+//! into hi-lite's smaller `Kind` vocabulary.
 
 use std::env;
 use std::fs;

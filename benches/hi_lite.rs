@@ -1,4 +1,4 @@
-//! Rustybench workload for the complete checked-in hi-lite golden corpus.
+//! Rustybench workloads for the checked-in hi-lite syntax and diff fixtures.
 //!
 //! Fixture loading and line splitting happen before the benchmark closure. The
 //! warm benchmarks therefore measure the highlighter's steady-state work,
