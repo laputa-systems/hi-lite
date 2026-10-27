@@ -437,33 +437,20 @@ impl Language {
         }
     }
 
-    /// Return the line-comment delimiter used by editor integrations.
+    /// Return the comment delimiter editor integrations insert.
+    ///
+    /// This is the lexer's line comment, or the block-comment opener when the
+    /// language has no line comment.
     pub const fn comment(self) -> &'static str {
-        match self {
-            Self::Html | Self::Xml => "<!--",
-            Self::Css => "/*",
-            Self::Scss => "//",
-            Self::Bash
-            | Self::Python
-            | Self::Ini
-            | Self::Yaml
-            | Self::Makefile
-            | Self::Dockerfile
-            | Self::Perl
-            | Self::R
-            | Self::Ruby
-            | Self::Batch
-            | Self::Xsh => "#",
-            Self::Markdown => "<!--",
-            Self::Erlang | Self::LaTeX => "%",
-            Self::Haskell | Self::Lua | Self::Sql => "--",
-            Self::Lisp | Self::Clojure => ";",
-            Self::Json | Self::Regex => "",
-            _ => "//",
+        let rules = self.rules();
+        if rules.line_comment.is_empty() {
+            rules.block_comment.0
+        } else {
+            rules.line_comment
         }
     }
 
-    pub(crate) fn rules(self) -> &'static languages::RuleSet {
+    pub(crate) const fn rules(self) -> &'static languages::RuleSet {
         match self {
             Self::Rust => &languages::RUST_RULES,
             Self::Python => &languages::PYTHON_RULES,
@@ -488,9 +475,9 @@ impl Language {
             Self::Perl | Self::R | Self::Ruby => &languages::HASH_SCRIPT_RULES,
             Self::Sql => &languages::SQL_RULES,
             Self::LaTeX => &languages::TEX_RULES,
-            Self::Regex => &languages::C_LIKE_RULES,
+            Self::Regex => &languages::REGEX_RULES,
             Self::Xml => &languages::HTML_RULES,
-            Self::Scss => &languages::CSS_RULES,
+            Self::Scss => &languages::SCSS_RULES,
             Self::Cpp
             | Self::CSharp
             | Self::Batch

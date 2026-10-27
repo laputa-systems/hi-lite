@@ -97,6 +97,23 @@ pub(crate) static C_LIKE_RULES: RuleSet = RuleSet {
     highlight_bang_macros: false,
 };
 
+/// Regular expressions do not use C comments.
+pub(crate) static REGEX_RULES: RuleSet = RuleSet {
+    lexer_kind: LexerKind::Code,
+    line_comment: "",
+    block_comment: ("", ""),
+    string_delims: C_LIKE_STRINGS,
+    keywords: C_LIKE_KEYWORDS,
+    types: C_LIKE_TYPES,
+    constants: &["false", "null", "true"],
+    macros: &[],
+    operators: C_LIKE_OPERATORS,
+    highlight_numbers: true,
+    highlight_upper_constants: true,
+    highlight_fn_calls: true,
+    highlight_bang_macros: false,
+};
+
 static HASH_KEYWORDS: &[&str] = &[
     "alias", "and", "begin", "case", "class", "def", "do", "else", "elsif", "end", "ensure", "for",
     "if", "in", "lambda", "module", "next", "not", "or", "redo", "rescue", "retry", "return",

@@ -60,6 +60,11 @@ pub const DEFAULT_CONTEXT_LINES: usize = 2;
 /// A final elision row may be appended when the source exceeds this limit.
 pub const DEFAULT_MAX_DISPLAY_LINES: usize = 6;
 
+/// Maximum rows on one side of the LCS table, including a trailing-newline marker.
+const DIFF_LINE_CAP: usize = 2048;
+
+const OMITTED_DIFF: &[u8] = b"(diff omitted)";
+
 const TRAILING_NEWLINE_ADDED: &[u8] = b"(trailing newline added)";
 const TRAILING_NEWLINE_REMOVED: &[u8] = b"(trailing newline removed)";
 
@@ -81,6 +86,7 @@ impl SourceLine {
 /// The first call grows the line-index, LCS matrix, inclusion mask, and output
 /// vectors supplied by the caller. Reusing both this scratch value and the
 /// output vectors avoids per-call allocations for steady-state highlighting.
+/// Either side longer than 2,048 lines skips the matrix.
 #[derive(Default)]
 pub struct DiffScratch {
     old_lines: Vec<SourceLine>,
@@ -118,6 +124,16 @@ impl DiffScratch {
 
         let old_len = self.old_lines.len();
         let new_len = self.new_lines.len();
+        output.clear();
+        if old_len > DIFF_LINE_CAP || new_len > DIFF_LINE_CAP {
+            output.push(DiffLine {
+                op: DiffOp::Equal,
+                old_line: None,
+                new_line: None,
+                text: OMITTED_DIFF,
+            });
+            return;
+        }
         let stride = new_len + 1;
         let cells = (old_len + 1) * stride;
         self.table.resize(cells, 0);
@@ -137,7 +153,6 @@ impl DiffScratch {
             }
         }
 
-        output.clear();
         let required_output = old_len + new_len;
         if output.capacity() < required_output {
             output.reserve(required_output - output.capacity());
@@ -191,6 +206,16 @@ impl DiffScratch {
         max_display_lines: usize,
         output: &mut Vec<DiffPreviewLine<'a>>,
     ) {
+        if is_omitted_diff(lines) {
+            output.clear();
+            output.push(DiffPreviewLine {
+                op: DiffPreviewOp::Elision,
+                old_line: None,
+                new_line: None,
+                text: DiffPreviewText::Elision,
+            });
+            return;
+        }
         let max_display_lines = max_display_lines.max(1);
         self.include.resize(lines.len(), false);
         self.include.fill(false);
@@ -240,6 +265,8 @@ impl DiffScratch {
 /// The inputs must remain alive while the returned rows are used. Empty input
 /// has no source rows, while a trailing newline is represented by the same
 /// explicit marker used by `fx` when only one side ends in a newline.
+/// Each side is limited to 2,048 lines, including that marker. A longer side
+/// skips the LCS table and returns one `(diff omitted)` row.
 pub fn diff<'a>(old_text: &'a [u8], new_text: &'a [u8]) -> Vec<DiffLine<'a>> {
     let mut scratch = DiffScratch::new();
     let mut result = Vec::new();
@@ -265,6 +292,9 @@ pub fn unified_preview<'a>(
 }
 
 /// Compute and project a complete diff in one call.
+///
+/// When either side is over the 2,048-line cap, the result is a single elision
+/// row and no LCS table is built.
 pub fn diff_preview<'a>(
     old_text: &'a [u8],
     new_text: &'a [u8],
@@ -277,6 +307,13 @@ pub fn diff_preview<'a>(
     let mut result = Vec::new();
     scratch.unified_preview_into(&lines, context_lines, max_display_lines, &mut result);
     result
+}
+
+fn is_omitted_diff(lines: &[DiffLine<'_>]) -> bool {
+    lines.len() == 1
+        && lines[0].text == OMITTED_DIFF
+        && lines[0].old_line.is_none()
+        && lines[0].new_line.is_none()
 }
 
 fn preview_line(line: DiffLine<'_>) -> DiffPreviewLine<'_> {
@@ -362,6 +399,55 @@ mod tests {
         let lines = diff(b"a\n", b"a");
         assert_eq!(lines[1].op, DiffOp::Remove);
         assert_eq!(lines[1].text, TRAILING_NEWLINE_REMOVED);
+    }
+
+    #[test]
+    fn line_cap_skips_the_table_and_keeps_small_tie_breaks() {
+        let old = repeated_lines(2048, b"old\n");
+        let new = repeated_lines(2048, b"new\n");
+        let lines = diff(&old, &new);
+        assert_eq!(lines.len(), 2049);
+        assert_eq!(lines[2047].op, DiffOp::Remove);
+        assert_eq!(lines[2047].text, b"old");
+        assert_eq!(lines[2048].op, DiffOp::Add);
+        assert_eq!(lines[2048].text, b"new");
+
+        let over = repeated_lines(2049, b"old\n");
+        let mut scratch = DiffScratch::new();
+        let mut omitted = Vec::new();
+        scratch.diff_into(&over, &new, &mut omitted);
+        assert_eq!(scratch.table.capacity(), 0);
+        assert_eq!(omitted.len(), 1);
+        assert_eq!(omitted[0].op, DiffOp::Equal);
+        assert_eq!(omitted[0].old_line, None);
+        assert_eq!(omitted[0].new_line, None);
+        assert_eq!(omitted[0].text, b"(diff omitted)");
+
+        let one_side = diff(&over, b"a\n");
+        assert_eq!(one_side.len(), 1);
+        assert_eq!(one_side[0].text, b"(diff omitted)");
+
+        let preview = diff_preview(&over, &new, 2, 6);
+        assert_eq!(
+            preview,
+            vec![DiffPreviewLine {
+                op: DiffPreviewOp::Elision,
+                old_line: None,
+                new_line: None,
+                text: DiffPreviewText::Elision,
+            }]
+        );
+        let projected = unified_preview(&omitted, 2, 6);
+        assert_eq!(projected, preview);
+    }
+
+    fn repeated_lines(count: usize, last: &[u8]) -> Vec<u8> {
+        let mut text = Vec::with_capacity(count.saturating_sub(1) * 2 + last.len());
+        for _ in 1..count {
+            text.extend_from_slice(b"s\n");
+        }
+        text.extend_from_slice(last);
+        text
     }
 
     #[test]

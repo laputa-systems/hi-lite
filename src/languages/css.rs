@@ -22,3 +22,19 @@ pub(crate) static RULES: RuleSet = RuleSet {
     highlight_bang_macros: false,
     lexer_kind: LexerKind::Css,
 };
+
+pub(crate) static SCSS_RULES: RuleSet = RuleSet {
+    line_comment: "//",
+    block_comment: ("/*", "*/"),
+    string_delims: STRINGS,
+    keywords: &[],
+    types: &[],
+    constants: &[],
+    macros: &[],
+    operators: &[],
+    highlight_numbers: true,
+    highlight_upper_constants: false,
+    highlight_fn_calls: true,
+    highlight_bang_macros: false,
+    lexer_kind: LexerKind::Css,
+};

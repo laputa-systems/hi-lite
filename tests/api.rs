@@ -136,6 +136,69 @@ fn language_comment_delimiters_are_canonical() {
 }
 
 #[test]
+fn css_and_scss_block_comments_cross_lines() {
+    for language in [Language::Css, Language::Scss] {
+        let mut highlighter = Highlighter::new(language);
+        let mut output = Vec::new();
+
+        let open = highlighter.highlight_into(b"/* open", &mut output);
+        assert!(
+            open.iter().all(|&kind| kind == Kind::Comment),
+            "{language:?} open"
+        );
+        assert!(!highlighter.state().is_normal(), "{language:?} open state");
+
+        let continued = highlighter.highlight_into(b"color: red;", &mut output);
+        assert!(
+            continued.iter().all(|&kind| kind == Kind::Comment),
+            "{language:?} continuation"
+        );
+        assert!(
+            !highlighter.state().is_normal(),
+            "{language:?} continuation state"
+        );
+
+        let close = highlighter.highlight_into(b"still */", &mut output);
+        assert!(
+            close.iter().all(|&kind| kind == Kind::Comment),
+            "{language:?} close"
+        );
+        assert!(highlighter.state().is_normal(), "{language:?} close state");
+    }
+}
+
+#[test]
+fn comment_delimiter_matches_the_lexer() {
+    assert_comment_line(Language::Scss, b"// line comment");
+    assert_eq!(Language::Ocaml.comment(), "--");
+    assert_comment_line(Language::Ocaml, b"-- dash");
+    assert_eq!(Language::Batch.comment(), "//");
+    assert_comment_line(Language::Batch, b"// slash");
+    assert_eq!(Language::Regex.comment(), "");
+    let mut highlighter = Highlighter::new(Language::Regex);
+    let mut output = Vec::new();
+    let kinds = highlighter.highlight_into(b"// slash", &mut output);
+    assert!(
+        kinds.iter().all(|&kind| kind != Kind::Comment),
+        "regex highlighted a C line comment"
+    );
+}
+
+fn assert_comment_line(language: Language, line: &[u8]) {
+    assert!(
+        line.starts_with(language.comment().as_bytes()),
+        "{language:?} comment delimiter"
+    );
+    let mut highlighter = Highlighter::new(language);
+    let mut output = Vec::new();
+    let kinds = highlighter.highlight_into(line, &mut output);
+    assert!(
+        kinds.iter().all(|&kind| kind == Kind::Comment),
+        "{language:?} lexer comment"
+    );
+}
+
+#[test]
 fn syntect_programming_syntax_names_have_dependency_free_lexers() {
     // Keep this list aligned with the programming grammars in syntect's
     // default SyntaxSet. Embedded/template syntaxes intentionally resolve to

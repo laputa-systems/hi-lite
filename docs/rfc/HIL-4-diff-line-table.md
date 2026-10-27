@@ -35,4 +35,4 @@ Truncate each side to the cap and diff the prefix. That still presents a prefix 
 
 ## Decision
 
-Unset.
+Each side is capped at 2,048 lines, and inputs at or under that cap keep the current LCS tie-break; a larger input skips the matrix, `diff` returns one `(diff omitted)` row, and `diff_preview` returns one elision row.

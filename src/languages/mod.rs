@@ -21,10 +21,11 @@ pub(crate) mod yaml;
 
 pub(crate) use bash::RULES as BASH_RULES;
 pub(crate) use c::RULES as C_RULES;
-pub(crate) use css::RULES as CSS_RULES;
+pub(crate) use css::{RULES as CSS_RULES, SCSS_RULES};
 pub(crate) use dockerfile::RULES as DOCKERFILE_RULES;
 pub(crate) use generic::{
-    C_LIKE_RULES, DASH_RULES, ERLANG_RULES, HASH_SCRIPT_RULES, LISP_RULES, SQL_RULES, TEX_RULES,
+    C_LIKE_RULES, DASH_RULES, ERLANG_RULES, HASH_SCRIPT_RULES, LISP_RULES, REGEX_RULES, SQL_RULES,
+    TEX_RULES,
 };
 pub(crate) use go::RULES as GO_RULES;
 pub(crate) use html::RULES as HTML_RULES;

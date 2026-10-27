@@ -639,12 +639,14 @@ fn highlight_line_specialized(
         }
         LexerKind::Html => highlight_html_tags(line, hl),
         LexerKind::Css => {
-            let in_block = matches!(state, StateKind::CssBlock);
-            next_state = if highlight_css_structure(line, hl, in_block) {
-                StateKind::CssBlock
-            } else {
-                StateKind::Normal
-            };
+            if matches!(next_state, StateKind::Normal) {
+                let in_block = matches!(state, StateKind::CssBlock);
+                next_state = if highlight_css_structure(line, hl, in_block) {
+                    StateKind::CssBlock
+                } else {
+                    StateKind::Normal
+                };
+            }
         }
         LexerKind::Makefile => highlight_makefile_structure(line, hl),
         LexerKind::Dockerfile => highlight_dockerfile_variables(line, hl),
@@ -2884,6 +2886,20 @@ mod tests {
         assert_eq!(hl[6], Kind::Macro); // n
         assert_eq!(hl[7], Kind::Macro); // !
         assert_eq!(hl[8], Kind::Bracket); // (
+    }
+
+    #[test]
+    fn rust_plain_identifiers_are_not_macros() {
+        let env = hl_types(b"let env = 1;", &RUST_RULES);
+        assert_eq!(env[4], Kind::Normal);
+        assert_eq!(env[5], Kind::Normal);
+        assert_eq!(env[6], Kind::Normal);
+        let test_fn = hl_types(b"fn test() {}", &RUST_RULES);
+        assert_ne!(test_fn[3], Kind::Macro);
+        assert_ne!(test_fn[6], Kind::Macro);
+        let println = hl_types(b"println!(\"hi\")", &RUST_RULES);
+        assert_eq!(println[0], Kind::Macro);
+        assert_eq!(println[7], Kind::Macro);
     }
 
     #[test]

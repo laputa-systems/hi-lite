@@ -45,9 +45,11 @@ extension first; selectors return `None` when no mode matches.
 ## Diff previews
 
 `diff` returns borrowed line operations and marks trailing-newline changes.
-It stores one LCS cell per pair of input lines, so large buffers need a lot of
-memory. `diff_preview` and `unified_preview` produce renderer-neutral context,
-addition, deletion, and elision rows. `DiffScratch` supports reusable storage.
+Each side is capped at 2,048 lines. A larger input does not build the LCS
+table: `diff` returns one omission row and `diff_preview` returns one elision
+row. Inputs at or under the cap keep the current tie-break. `DiffScratch`
+uses the same cap. `unified_preview` projects a complete diff into
+renderer-neutral context, addition, deletion, and elision rows.
 
 ## Help
 

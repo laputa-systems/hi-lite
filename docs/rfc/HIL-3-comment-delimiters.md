@@ -41,4 +41,4 @@ Delete `comment()` and make callers read the rule table. The table is crate-priv
 
 ## Decision
 
-Unset.
+`comment()` returns the rule table's line comment, or its block opener when that line comment is empty; SCSS has its own CSS rules with `//`, OCaml and Batch stay on their family tables (`--` and `//`), and Regex has no comment delimiters.

@@ -23,12 +23,7 @@ pub(crate) static RULES: RuleSet = RuleSet {
         "struct", "true", "u128", "u16", "u32", "u64", "u8", "usize",
     ],
     constants: &[],
-    macros: &[
-        "abort", "archive", "args", "bytes", "cli", "cpu", "diff", "dns", "env", "eprint", "fs",
-        "group", "hash", "io", "json", "linux", "list", "map", "module", "net", "patch", "path",
-        "print", "process", "range", "record", "regex", "system", "test", "text", "time", "tui",
-        "unix",
-    ],
+    macros: &[],
     operators: &[
         "&&", "||", "!=", "==", "<=", ">=", "=>", "->", "::", "&", "=",
     ],
