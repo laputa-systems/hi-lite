@@ -45,7 +45,8 @@ extension first; selectors return `None` when no mode matches.
 ## Diff previews
 
 `diff` returns borrowed line operations and marks trailing-newline changes.
-`diff_preview` and `unified_preview` produce renderer-neutral context,
+It stores one LCS cell per pair of input lines, so large buffers need a lot of
+memory. `diff_preview` and `unified_preview` produce renderer-neutral context,
 addition, deletion, and elision rows. `DiffScratch` supports reusable storage.
 
 ## Help

@@ -13,7 +13,8 @@ sh tools/generate-hi-lite-goldens.sh
 The generator uses the standalone Cargo project in `tools/hi-lite-syntect/`.
 Its syntect scope stacks are normalized to hi-lite's semantic kinds, with
 strings kept dominant over nested template interpolation. The script also
-generates goldens for the shared `language_probe.snippet`.
+generates goldens for the shared `language_probe.snippet` (a number and a
+string, not a grammar). `parse_golden` in `tests/golden.rs` reads each golden.
 
 The generator skips Dockerfile, INI, TOML, and XSH; their `.golden` files are
 explicit semantic fixtures maintained separately.

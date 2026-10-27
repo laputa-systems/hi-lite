@@ -30,7 +30,6 @@ impl TextPosition {
     }
 }
 
-// -- Types ------------------------------------------------------------------
 
 /// Semantic category assigned to one source byte or rendered character.
 #[repr(u8)]
@@ -119,7 +118,6 @@ impl State {
     }
 }
 
-// -- Algorithm --------------------------------------------------------------
 
 fn is_separator(c: u8) -> bool {
     c.is_ascii_whitespace()
@@ -1415,7 +1413,6 @@ fn identifier_kind(id: &[u8], rules: &RuleSet) -> Option<Kind> {
     }
 }
 
-// -- Semver highlighting ----------------------------------------------------
 
 /// Post-pass: highlight semver patterns like v1.2.3 or 0.3.5-beta.1
 fn highlight_semver(line: &[u8], hl: &mut [Kind], lexer_kind: LexerKind, state: StateKind) {
@@ -1527,7 +1524,6 @@ fn highlight_semver(line: &[u8], hl: &mut [Kind], lexer_kind: LexerKind, state: 
     }
 }
 
-// -- JSON highlighting ------------------------------------------------------
 
 fn highlight_line_json(line: &[u8], _state: StateKind, hl: &mut [Kind]) -> StateKind {
     let len = line.len();
@@ -1625,7 +1621,6 @@ fn highlight_line_json(line: &[u8], _state: StateKind, hl: &mut [Kind]) -> State
     StateKind::Normal
 }
 
-// -- YAML highlighting ------------------------------------------------------
 
 fn highlight_line_yaml(line: &[u8], _state: StateKind, hl: &mut [Kind]) -> StateKind {
     let len = line.len();
@@ -1843,7 +1838,6 @@ fn highlight_yaml_value(val: &[u8], hl: &mut [Kind]) {
     }
 }
 
-// -- INI/Config highlighting ------------------------------------------------
 
 fn highlight_line_ini(line: &[u8], _state: StateKind, hl: &mut [Kind]) -> StateKind {
     let len = line.len();
@@ -2039,7 +2033,6 @@ fn highlight_ini_inline_comment(line: &[u8], hl: &mut [Kind], start: usize) {
     }
 }
 
-// -- Markdown highlighting --------------------------------------------------
 
 fn markdown_fence_language(line: &[u8]) -> Option<crate::Language> {
     let info = line.strip_prefix(b"```")?.trim_ascii_start();
@@ -2289,7 +2282,6 @@ fn highlight_line_markdown_inner(line: &[u8], rules: &RuleSet, hl: &mut [Kind]) 
     StateKind::Normal
 }
 
-// -- Bracket matching -------------------------------------------------------
 
 fn bracket_pair(ch: u8) -> Option<(u8, bool)> {
     match ch {
@@ -2303,10 +2295,11 @@ fn bracket_pair(ch: u8) -> Option<(u8, bool)> {
     }
 }
 
-/// Find the matching bracket for the bracket at `pos`.
-/// `get_line(idx, buf)` fills `buf` with the raw bytes for line `idx`.
-/// `scratch` is a caller-supplied buffer reused across calls (avoids per-line allocation).
-/// Returns the position of the matching bracket, or None.
+/// Find the matching raw byte for the bracket at `pos`.
+///
+/// `get_line(idx, buf)` fills `buf` with the bytes of line `idx`. `scratch` is
+/// reused across calls. Brackets inside strings and comments count. The search
+/// stops after 1000 lines and returns `None` when it finds no match.
 pub fn find_bracket_match(
     pos: TextPosition,
     get_line: &mut impl FnMut(usize, &mut Vec<u8>),
@@ -2396,6 +2389,10 @@ fn is_escaped(line: &[u8], idx: usize) -> bool {
     backslashes % 2 == 1
 }
 
+/// Find the paired unescaped `"` or `'` on the same line as `pos`.
+///
+/// Quotes pair in source order. A backslash escapes a quote. The search does
+/// not cross lines. `line_count` is unused.
 pub fn find_quote_match(
     pos: TextPosition,
     get_line: &mut impl FnMut(usize, &mut Vec<u8>),
@@ -2465,7 +2462,6 @@ fn byte_to_character_column(line: &[u8], byte_idx: usize) -> usize {
     ci
 }
 
-// -- Byte-to-char mapping ---------------------------------------------------
 
 /// Map byte-indexed highlights to char-indexed highlights, writing into `out`.
 /// Tabs expand to 2 display entries, multi-byte UTF-8 collapses to 1 entry.
@@ -2502,7 +2498,7 @@ pub fn byte_kinds_to_char_kinds_into(raw: &[u8], byte_kinds: &[Kind], out: &mut 
     }
 }
 
-/// Allocating wrapper around `byte_kinds_to_char_kinds_into`. Used in tests.
+/// Allocating wrapper around `byte_kinds_to_char_kinds_into`.
 #[allow(dead_code)]
 pub fn byte_kinds_to_char_kinds(raw: &[u8], byte_kinds: &[Kind]) -> Vec<Kind> {
     let mut out = Vec::with_capacity(raw.len());
@@ -2632,9 +2628,6 @@ impl Highlighter {
     /// allocate; callers can reserve that capacity once when opening a file.
     pub fn highlight_into<'a>(&mut self, line: &[u8], scratch: &'a mut Vec<Kind>) -> &'a [Kind] {
         scratch.resize(line.len(), Kind::Normal);
-        // `Vec::resize` preserves existing elements when the next line has
-        // the same length; clear them so a previous comment/string cannot
-        // leak into this line's semantic runs.
         scratch.fill(Kind::Normal);
         self.state = State(highlight_line_into_rules(
             line,
@@ -2676,7 +2669,6 @@ pub fn runs(kinds: &[Kind]) -> impl Iterator<Item = Run> + '_ {
     })
 }
 
-// -- Tests ------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
@@ -2688,7 +2680,6 @@ mod tests {
         highlight_line(line, StateKind::Normal, rules).0
     }
 
-    // -- Basic highlighting -------------------------------------------------
 
     #[test]
     fn test_line_comment() {
@@ -2735,7 +2726,6 @@ mod tests {
         assert!(hl.iter().all(|&h| h == Kind::Normal));
     }
 
-    // -- Block comments -----------------------------------------------------
 
     #[test]
     fn test_block_comment_single_line() {
@@ -2799,7 +2789,6 @@ mod tests {
         assert_eq!(state2, StateKind::Normal);
     }
 
-    // -- Multiline strings --------------------------------------------------
 
     #[test]
     fn test_python_triple_quote() {
@@ -2823,7 +2812,6 @@ mod tests {
         assert_eq!(state2, StateKind::Normal);
     }
 
-    // -- Escape handling in strings -----------------------------------------
 
     #[test]
     fn test_string_escape() {
@@ -2832,7 +2820,6 @@ mod tests {
         assert!(hl.iter().all(|&h| h == Kind::String));
     }
 
-    // -- Keyword boundary ---------------------------------------------------
 
     #[test]
     fn test_keyword_not_in_identifier() {
@@ -2841,7 +2828,6 @@ mod tests {
         assert!(hl.iter().all(|&h| h == Kind::Normal));
     }
 
-    // -- Function call highlighting -----------------------------------------
 
     #[test]
     fn test_function_call() {
@@ -2869,7 +2855,6 @@ mod tests {
         assert_eq!(hl[1], Kind::Keyword); // f
     }
 
-    // -- Constant highlighting ----------------------------------------------
 
     #[test]
     fn test_upper_snake_constant() {
@@ -2891,7 +2876,6 @@ mod tests {
         assert_eq!(hl[4], Kind::Normal); // M
     }
 
-    // -- Macro highlighting -------------------------------------------------
 
     #[test]
     fn test_rust_bang_macro() {
@@ -2918,7 +2902,6 @@ mod tests {
         assert_eq!(hl[4], Kind::Operator); // !
     }
 
-    // -- byte_kinds_to_char_kinds -------------------------------------------------
 
     #[test]
     fn test_byte_to_char_ascii() {
@@ -2947,7 +2930,6 @@ mod tests {
         assert_eq!(char_hl.len(), 5);
     }
 
-    // -- Language lookup -----------------------------------------------------
 
     #[test]
     fn test_language_rules_cover_builtins() {
@@ -2981,7 +2963,6 @@ mod tests {
         assert!(Language::from_name("Unknown").is_none());
     }
 
-    // -- INI/Config ---------------------------------------------------------
 
     #[test]
     fn test_ini_config() {
@@ -3060,7 +3041,6 @@ mod tests {
         assert_eq!(hl[10], Kind::Comment);
     }
 
-    // -- Python specifics ---------------------------------------------------
 
     #[test]
     fn test_python_hash_comment() {
@@ -3068,7 +3048,6 @@ mod tests {
         assert_eq!(hl[6], Kind::Comment);
     }
 
-    // -- Empty line ---------------------------------------------------------
 
     #[test]
     fn test_empty_line() {
@@ -3084,7 +3063,6 @@ mod tests {
         assert_eq!(state, StateKind::BlockComment);
     }
 
-    // -- HTML block comments ------------------------------------------------
 
     #[test]
     fn test_html_comment() {
@@ -3104,7 +3082,6 @@ mod tests {
         assert_eq!(state2, StateKind::Normal);
     }
 
-    // -- Dockerfile keywords ------------------------------------------------
 
     #[test]
     fn test_dockerfile_keywords() {
@@ -3113,7 +3090,6 @@ mod tests {
         assert_eq!(hl[3], Kind::Keyword); // M
     }
 
-    // -- JSON ---------------------------------------------------------------
 
     #[test]
     fn test_json_no_comments() {
@@ -3122,7 +3098,6 @@ mod tests {
         assert_eq!(hl[8], Kind::Type); // 't' of true
     }
 
-    // -- Number edge cases --------------------------------------------------
 
     #[test]
     fn test_hex_number() {
@@ -3172,7 +3147,6 @@ mod tests {
         assert!(malformed[1..].iter().all(|&h| h == Kind::Normal));
     }
 
-    // -- Semver highlighting ------------------------------------------------
 
     /// Helper: highlight multiple lines and return all per-byte highlights.
     fn hl_multiline(lines: &[&[u8]], rules: &RuleSet) -> Vec<Vec<Kind>> {
@@ -3293,7 +3267,6 @@ mod tests {
         );
     }
 
-    // -- Bracket highlighting -----------------------------------------------
 
     #[test]
     fn test_brackets_in_rust_function() {
@@ -3339,7 +3312,6 @@ mod tests {
         assert_eq!(hls[6][0], Kind::Bracket);
     }
 
-    // -- Markdown highlighting ----------------------------------------------
 
     #[test]
     fn test_markdown_document() {
@@ -3431,7 +3403,6 @@ mod tests {
         assert_range(&hls[3], 0..close_end, Kind::Comment, "comment end");
     }
 
-    // -- JSON document ------------------------------------------------------
 
     #[test]
     fn test_json_package_json() {
@@ -3493,7 +3464,6 @@ mod tests {
         assert_eq!(hls[11][0], Kind::Bracket);
     }
 
-    // -- YAML document ------------------------------------------------------
 
     #[test]
     fn test_yaml_config() {
@@ -3554,7 +3524,6 @@ mod tests {
         );
     }
 
-    // -- Bracket matching ---------------------------------------------------
 
     #[test]
     fn test_bracket_matching_in_function() {
@@ -3640,7 +3609,6 @@ mod tests {
         assert_eq!(result, None);
     }
 
-    // -- Quote matching -----------------------------------------------------
 
     #[test]
     fn test_quote_match_double_basic() {
@@ -3793,7 +3761,6 @@ mod tests {
         );
     }
 
-    // -- INI section edge cases -----------------------------------------------
 
     #[test]
     fn test_ini_empty_value() {
@@ -3808,7 +3775,6 @@ mod tests {
         assert!(hl.iter().all(|&h| h != Kind::Keyword));
     }
 
-    // -- YAML edge cases ------------------------------------------------------
 
     #[test]
     fn test_yaml_multiline_string() {
@@ -3823,7 +3789,6 @@ mod tests {
         assert_range(&hl, 0..3, Kind::Keyword, "yaml key");
     }
 
-    // -- Markdown edge cases --------------------------------------------------
 
     #[test]
     fn test_markdown_fenced_code_block_with_language() {
@@ -3873,7 +3838,6 @@ mod tests {
         assert_eq!(hl[0], Kind::Comment);
     }
 
-    // -- Language lookup ------------------------------------------------------
 
     #[test]
     fn test_language_aliases_and_extensions() {
@@ -3977,7 +3941,6 @@ mod tests {
         assert_eq!(Language::from_name("unknown"), None);
     }
 
-    // -- byte_kinds_to_char_kinds with multi-byte chars -----------------------------
 
     #[test]
     fn test_byte_kinds_to_char_kinds_multibyte() {
@@ -3988,8 +3951,6 @@ mod tests {
         assert_eq!(char_hl.len(), 1);
         assert_eq!(char_hl[0], Kind::String);
     }
-
-    // -- Coverage gap: multiline string continuation (lines 166-169, 184-185) --
 
     #[test]
     fn test_multiline_string_continuation() {
@@ -4010,8 +3971,6 @@ mod tests {
         assert_eq!(state3, StateKind::Normal);
     }
 
-    // -- Coverage gap: unclosed non-multiline string (line 266) ---------------
-
     #[test]
     fn test_unclosed_string_single_line() {
         let rules = Language::from_name("Rust").unwrap().rules();
@@ -4022,8 +3981,6 @@ mod tests {
         assert_eq!(state, StateKind::Normal);
     }
 
-    // -- Coverage gap: float starting with dot (line 330) ---------------------
-
     #[test]
     fn test_number_starting_with_dot() {
         let rules = Language::from_name("Rust").unwrap().rules();
@@ -4033,8 +3990,6 @@ mod tests {
         assert_eq!(hl[9], Kind::Number); // 5
     }
 
-    // -- Coverage gap: semver pre-release (lines 433-436) ---------------------
-
     #[test]
     fn test_semver_pre_release() {
         let rules = Language::from_name("TOML").unwrap().rules();
@@ -4043,8 +3998,6 @@ mod tests {
         // The version inside quotes should be Type (cyan/semver)
         assert_eq!(hl[11], Kind::Type); // '1' of version
     }
-
-    // -- Coverage gap: YAML anchor/alias (lines 621-629) ----------------------
 
     #[test]
     fn test_yaml_anchor() {
@@ -4063,8 +4016,6 @@ mod tests {
         assert_eq!(hl[0], Kind::Type);
     }
 
-    // -- Coverage gap: YAML list item with key:value (lines 655-661) ----------
-
     #[test]
     fn test_yaml_list_item_with_key() {
         let line = b"- name: value";
@@ -4074,7 +4025,6 @@ mod tests {
         assert_eq!(hl[5], Kind::Keyword); // 'e' of name
     }
 
-    // -- Keyword lists must be sorted for binary search -----------------------
 
     #[test]
     fn test_keyword_lists_sorted() {
@@ -4114,8 +4064,6 @@ mod tests {
         }
     }
 
-    // -- Coverage gap: YAML negative number (lines 744-745) -------------------
-
     #[test]
     fn test_yaml_negative_number() {
         let line = b"  -42";
@@ -4124,8 +4072,6 @@ mod tests {
         assert_eq!(hl[2], Kind::Number); // '-'
         assert_eq!(hl[3], Kind::Number); // '4'
     }
-
-    // -- Coverage gap: find_yaml_colon with quoted colon (lines 675-680) ------
 
     #[test]
     fn test_yaml_colon_in_quotes() {
@@ -4137,7 +4083,6 @@ mod tests {
         assert_eq!(hl[0], Kind::Keyword);
     }
 
-    // -- XSH -----------------------------------------------------------------
 
     #[test]
     fn test_xsh_keyword() {

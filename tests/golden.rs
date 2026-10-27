@@ -1,10 +1,3 @@
-//! Fixture comparison against checked-in semantic highlight goldens.
-//!
-//! The `.snippet` files are syntax-complete examples. Their `.golden` siblings
-//! contain one `start..end=kind` run list per source line. Most goldens are
-//! generated from syntect; a few are explicit semantic fixtures. Tests use the
-//! checked-in files and do not invoke the standalone generator.
-
 use std::fs;
 use std::path::{Path, PathBuf};
 

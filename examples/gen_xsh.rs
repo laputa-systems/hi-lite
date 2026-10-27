@@ -66,7 +66,6 @@ fn err<T>(message: impl Into<String>) -> Result<T, Box<dyn Error>> {
     Err(Box::new(GenError(message.into())))
 }
 
-// -- syn-based grammar extraction -------------------------------------------
 
 /// Collect the string patterns from every `"keyword" => Self::Variant` arm,
 /// which is the lexer's authoritative spelling of each keyword.
@@ -382,7 +381,6 @@ fn reference_vocabulary(
     Ok((effects.names, stages.stages))
 }
 
-// -- vocabulary construction ---------------------------------------------------
 
 /// Keep only identifiers the byte highlighter can scan as one token.
 fn single_token(word: &str) -> bool {
@@ -417,7 +415,6 @@ fn build_types(builtin: BTreeSet<String>, records: BTreeSet<String>) -> Vec<Stri
     types.into_iter().collect()
 }
 
-// -- output ---------------------------------------------------------------------
 
 const START_MARKER: &str = "// BEGIN GENERATED XSH VOCABULARY";
 const END_MARKER: &str = "// END GENERATED XSH VOCABULARY";
@@ -507,7 +504,6 @@ pub fn regenerate(repo: &Path) -> Result<Vocab, Box<dyn Error>> {
     })
 }
 
-// -- command-line entry point -------------------------------------------------
 
 /// Path to the XSH registry checkout, from `XSH_REPO` or the default location.
 pub fn default_repo() -> PathBuf {

@@ -213,8 +213,6 @@ pub static XSH_MACROS: &[&str] = &[
 ];
 // END GENERATED XSH VOCABULARY
 
-// XSH: ordered longest-open-first so the generic string scanner picks the
-// right delimiter.  Triple-quoted forms are multiline.
 static STRINGS: &[StringDelim] = &[
     string_delim!("fp\"\"\"", "\"\"\"", true),
     string_delim!("fr\"\"\"", "\"\"\"", true),
@@ -271,13 +269,11 @@ pub fn scan_type_line(line: &[u8], in_continuation: bool) -> (Vec<Vec<u8>>, bool
         i += 1;
     }
 
-    // --- continuation: expect leading '|' -----------------------------------
     if in_continuation && i < len && line[i] == b'|' {
         i += 1; // skip '|'
         return (extract_variants(line, &mut i), true);
     }
 
-    // --- new type declaration -----------------------------------------------
     if i + 4 > len || &line[i..i + 4] != b"type" {
         return (Vec::new(), false);
     }
@@ -455,7 +451,6 @@ mod tests {
         assert!(types.contains(&b"Bar".to_vec()));
     }
 
-    // -- Multi-line tag unions -----------------------------------------------
 
     #[test]
     fn test_collect_multiline_bare_equals() {

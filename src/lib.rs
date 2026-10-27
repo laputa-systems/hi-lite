@@ -1,9 +1,9 @@
 //! Dependency-free syntax highlighting for line-oriented terminal and text UIs.
+//!
+//! The crate owns syntax tokenization and state propagation across lines. It does
+//! not depend on an editor buffer or renderer. Callers pass one line of bytes at
+//! a time and choose how to present the semantic `Kind` values.
 mod diff;
-///
-/// The crate owns syntax tokenization and state propagation across lines. It does
-/// not depend on an editor buffer or renderer; callers provide one line of bytes
-/// at a time and choose their own presentation for the semantic `Kind` values.
 mod highlight;
 mod language;
 mod languages;
