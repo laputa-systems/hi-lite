@@ -165,7 +165,7 @@ pub(crate) static DASH_RULES: RuleSet = RuleSet {
 
 /// SQL and SQL-derived templates.
 pub(crate) static SQL_RULES: RuleSet = RuleSet {
-    lexer_kind: LexerKind::Code,
+    lexer_kind: LexerKind::Sql,
     line_comment: "--",
     block_comment: ("/*", "*/"),
     string_delims: SQL_STRINGS,

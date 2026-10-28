@@ -1,15 +1,6 @@
 Prefix: HIL
 Next: 9
 
-### HIL-5 · P3 · SQL keywords match only lowercase
-
-- **Area:** Types
-- **Where:** `src/languages/generic.rs:156`, `src/highlight.rs:1392`, `src/language.rs:489`
-- **Problem:** `SQL_RULES` lists lowercase keywords, and `keyword_search` compares raw bytes. Probe: `SELECT * FROM t;` leaves `SELECT` and `FROM` as `Normal`. The same line in lowercase marks both as `Keyword`. SQL source is usually uppercase. No fixture covers this. `language_probe.snippet` is only `42` and `"Ada"`.
-- **Recommendation:** Case-fold the identifier before the SQL keyword and type search, and add one uppercase line to a SQL fixture.
-- **Fix with:** none
-- **Effort:** S
-
 ### HIL-6 · P3 · A checkpoint from another language panics
 
 - **Area:** Types

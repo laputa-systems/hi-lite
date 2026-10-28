@@ -1402,6 +1402,15 @@ fn keyword_search(id: &[u8], words: &[&str]) -> bool {
 /// identifier path to the categories that can actually match.
 #[inline]
 fn identifier_kind(id: &[u8], rules: &RuleSet) -> Option<Kind> {
+    if rules.lexer_kind == LexerKind::Sql && id.iter().any(|byte| byte.is_ascii_uppercase()) {
+        let folded = id.to_ascii_lowercase();
+        return identifier_kind_ascii(&folded, rules);
+    }
+    identifier_kind_ascii(id, rules)
+}
+
+#[inline]
+fn identifier_kind_ascii(id: &[u8], rules: &RuleSet) -> Option<Kind> {
     if keyword_search(id, rules.keywords) {
         Some(Kind::Keyword)
     } else if keyword_search(id, rules.types) {
@@ -2526,7 +2535,7 @@ fn highlight_line_into_rules(
         LexerKind::Json => highlight_line_json(line, state, out),
         LexerKind::Yaml => highlight_line_yaml(line, state, out),
         LexerKind::Ini => highlight_line_ini(line, state, out),
-        LexerKind::Code | LexerKind::Rust => {
+        LexerKind::Code | LexerKind::Rust | LexerKind::Sql => {
             highlight_line_code(line, state, rules, user_types, out)
         }
         LexerKind::Bash
@@ -2705,6 +2714,22 @@ mod tests {
         // "usize" starts at index 7
         assert_eq!(hl[7], Kind::Type);
         assert_eq!(hl[11], Kind::Type);
+    }
+
+    #[test]
+    fn test_sql_keywords_match_ascii_case_insensitively() {
+        let hl = hl_types(b"SELECT * FROM t;", &SQL_RULES);
+        assert_eq!(hl[0], Kind::Keyword); // 'S'
+        assert_eq!(hl[5], Kind::Keyword); // 'T'
+        assert_eq!(hl[9], Kind::Keyword); // 'F'
+        let mixed = hl_types(b"SeLeCt", &SQL_RULES);
+        assert!(mixed.iter().all(|&kind| kind == Kind::Keyword));
+        let lower = hl_types(b"select", &SQL_RULES);
+        assert!(lower.iter().all(|&kind| kind == Kind::Keyword));
+        let types = hl_types(b"CREATE TABLE t (id INT);", &SQL_RULES);
+        assert_eq!(types[19], Kind::Type); // 'I'
+        let rust = hl_types(b"SELECT", &RUST_RULES);
+        assert_ne!(rust[0], Kind::Keyword);
     }
 
     #[test]

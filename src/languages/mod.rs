@@ -68,6 +68,8 @@ pub(crate) enum LexerKind {
     Dockerfile,
     /// Generic scanning with JavaScript/TypeScript template interpolation.
     Script,
+    /// Generic scanning with case-insensitive keyword matching.
+    Sql,
     /// Markdown block and inline markup scanner.
     Markdown,
     /// JSON key/value scanner.
