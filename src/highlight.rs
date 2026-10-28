@@ -2420,12 +2420,11 @@ fn is_escaped(line: &[u8], idx: usize) -> bool {
 /// Find the paired unescaped `"` or `'` on the same line as `pos`.
 ///
 /// Quotes pair in source order. A backslash escapes a quote. The search does
-/// not cross lines. `line_count` is unused.
+/// not cross lines.
 pub fn find_quote_match(
     pos: TextPosition,
     get_line: &mut impl FnMut(usize, &mut Vec<u8>),
     scratch: &mut Vec<u8>,
-    _line_count: usize,
 ) -> Option<TextPosition> {
     get_line(pos.line, scratch);
     let byte_idx = character_column_to_byte(scratch, pos.column)?;
@@ -3686,12 +3685,12 @@ mod tests {
         };
         // Cursor on opening " → match closing
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 0), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 0), &mut get, &mut scratch),
             Some(TextPosition::new(0, 6))
         );
         // Cursor on closing " → match opening
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 6), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 6), &mut get, &mut scratch),
             Some(TextPosition::new(0, 0))
         );
     }
@@ -3705,11 +3704,11 @@ mod tests {
             b.extend_from_slice(line);
         };
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 0), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 0), &mut get, &mut scratch),
             Some(TextPosition::new(0, 6))
         );
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 6), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 6), &mut get, &mut scratch),
             Some(TextPosition::new(0, 0))
         );
     }
@@ -3725,11 +3724,11 @@ mod tests {
             b.extend_from_slice(line);
         };
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 0), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 0), &mut get, &mut scratch),
             Some(TextPosition::new(0, 8))
         );
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 8), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 8), &mut get, &mut scratch),
             Some(TextPosition::new(0, 0))
         );
     }
@@ -3744,20 +3743,20 @@ mod tests {
         };
         // First pair: 0↔2
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 0), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 0), &mut get, &mut scratch),
             Some(TextPosition::new(0, 2))
         );
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 2), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 2), &mut get, &mut scratch),
             Some(TextPosition::new(0, 0))
         );
         // Second pair: 4↔6
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 4), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 4), &mut get, &mut scratch),
             Some(TextPosition::new(0, 6))
         );
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 6), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 6), &mut get, &mut scratch),
             Some(TextPosition::new(0, 4))
         );
     }
@@ -3772,7 +3771,7 @@ mod tests {
             b.extend_from_slice(line);
         };
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 4), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 4), &mut get, &mut scratch),
             None
         );
     }
@@ -3786,7 +3785,7 @@ mod tests {
             b.extend_from_slice(line);
         };
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 2), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 2), &mut get, &mut scratch),
             None
         );
     }
@@ -3802,7 +3801,7 @@ mod tests {
         };
         // byte 1 is \, byte 2 is escaped "
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 2), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 2), &mut get, &mut scratch),
             None
         );
     }
@@ -3818,11 +3817,11 @@ mod tests {
         };
         // bytes: " \ \ " — positions 0 and 3 are unescaped quotes
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 0), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 0), &mut get, &mut scratch),
             Some(TextPosition::new(0, 3))
         );
         assert_eq!(
-            find_quote_match(TextPosition::new(0, 3), &mut get, &mut scratch, 1),
+            find_quote_match(TextPosition::new(0, 3), &mut get, &mut scratch),
             Some(TextPosition::new(0, 0))
         );
     }
