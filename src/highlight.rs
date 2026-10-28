@@ -103,18 +103,34 @@ impl FencedCodeState {
 }
 
 /// Opaque state carried from one source line to the next.
+///
+/// The checkpoint records the language that produced it so a highlighter for
+/// another language can ignore it instead of misreading its own rule tables.
 #[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
-pub struct State(StateKind);
+pub struct State {
+    kind: StateKind,
+    language: Option<crate::Language>,
+}
 
 impl State {
     /// Return the initial state for a new document or stream.
     pub const fn normal() -> Self {
-        Self(StateKind::Normal)
+        Self {
+            kind: StateKind::Normal,
+            language: None,
+        }
     }
 
     /// Return whether no multiline lexical construct is active.
     pub const fn is_normal(self) -> bool {
-        matches!(self.0, StateKind::Normal)
+        matches!(self.kind, StateKind::Normal)
+    }
+
+    fn accept(self, language: crate::Language) -> StateKind {
+        match self.language {
+            Some(owner) if owner != language => StateKind::Normal,
+            _ => self.kind,
+        }
     }
 }
 
@@ -343,6 +359,7 @@ fn highlight_line_code(
             }
             prev_sep = true;
         }
+        StateKind::MultiLineString(idx) if rules.string_delims.get(idx as usize).is_none() => {}
         StateKind::MultiLineString(idx) => {
             let close = rules.string_delims[idx as usize].close.as_bytes();
             while i < len {
@@ -2570,13 +2587,11 @@ pub fn highlight_line_into(
     line: &[u8],
     out: &mut [Kind],
 ) -> State {
-    State(highlight_line_into_rules(
-        line,
-        state.0,
-        language.rules(),
-        &[],
-        out,
-    ))
+    let kind = highlight_line_into_rules(line, state.accept(language), language.rules(), &[], out);
+    State {
+        kind,
+        language: Some(language),
+    }
 }
 
 /// Stateful line highlighter for streaming callers.
@@ -2620,8 +2635,14 @@ impl Highlighter {
     /// Set the state used for the next line.
     ///
     /// This is useful for editors that resume from a cached line checkpoint.
+    /// A checkpoint produced by another language is ignored: the state resets
+    /// to normal instead of indexing this language's rule tables with a
+    /// foreign delimiter slot.
     pub fn set_state(&mut self, state: State) {
-        self.state = state;
+        self.state = match state.language {
+            Some(owner) if owner != self.language => State::normal(),
+            _ => state,
+        };
     }
 
     /// Supply optional application-defined type names for identifier coloring.
@@ -2640,13 +2661,17 @@ impl Highlighter {
     pub fn highlight_into<'a>(&mut self, line: &[u8], scratch: &'a mut Vec<Kind>) -> &'a [Kind] {
         scratch.resize(line.len(), Kind::Normal);
         scratch.fill(Kind::Normal);
-        self.state = State(highlight_line_into_rules(
+        let kind = highlight_line_into_rules(
             line,
-            self.state.0,
+            self.state.accept(self.language),
             self.language.rules(),
             &self.user_types,
             scratch,
-        ));
+        );
+        self.state = State {
+            kind,
+            language: Some(self.language),
+        };
         scratch
     }
 }
@@ -4010,6 +4035,15 @@ mod tests {
         let line3 = b"end\"\"\"";
         let (_hl3, state3) = highlight_line(line3, state2, rules);
         assert_eq!(state3, StateKind::Normal);
+    }
+
+    #[test]
+    fn test_foreign_multiline_string_index_resets_safely() {
+        let rules = Language::from_name("LaTeX").unwrap().rules();
+        assert!(rules.string_delims.is_empty());
+        let (hl, next) = highlight_line(b"abc", StateKind::MultiLineString(0), rules);
+        assert_eq!(next, StateKind::Normal);
+        assert!(hl.iter().all(|&kind| kind == Kind::Normal));
     }
 
     #[test]

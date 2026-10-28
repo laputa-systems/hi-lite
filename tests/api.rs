@@ -126,6 +126,30 @@ fn language_detection_owns_file_extension_and_shebang_mapping() {
 }
 
 #[test]
+fn state_checkpoints_do_not_cross_languages() {
+    let mut python = Highlighter::new(Language::Python);
+    let mut scratch = Vec::new();
+    python.highlight_into(b"\"\"\"open", &mut scratch);
+    assert!(!python.state().is_normal());
+    let checkpoint = python.state();
+
+    let mut latex = Highlighter::new(Language::LaTeX);
+    latex.set_state(checkpoint);
+    assert!(
+        latex.state().is_normal(),
+        "a Python checkpoint must not resume a LaTeX stream"
+    );
+    let kinds = latex.highlight_into(b"begin{document}", &mut scratch);
+    assert_eq!(kinds[0], Kind::Keyword);
+
+    let mut python_resume = Highlighter::new(Language::Python);
+    python_resume.set_state(checkpoint);
+    assert!(!python_resume.state().is_normal());
+    let continued = python_resume.highlight_into(b"still open", &mut scratch);
+    assert!(continued.iter().all(|&kind| kind == Kind::String));
+}
+
+#[test]
 fn language_comment_delimiters_are_canonical() {
     assert_eq!(Language::Rust.comment(), "//");
     assert_eq!(Language::Python.comment(), "#");

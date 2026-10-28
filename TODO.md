@@ -1,15 +1,6 @@
 Prefix: HIL
 Next: 9
 
-### HIL-6 · P3 · A checkpoint from another language panics
-
-- **Area:** Types
-- **Where:** `src/highlight.rs:347`, `src/languages/generic.rs:207`, `src/highlight.rs:2610`
-- **Problem:** `State` is opaque but not tied to a language. `MultiLineString(index)` indexes `string_delims` with no bounds check. Probe: a Python `"""` checkpoint passed to a LaTeX `Highlighter` through `set_state` panics at `highlight.rs:347` (`index out of bounds: the len is 0 but the index is 0`). LaTeX uses `TEX_RULES`, whose `string_delims` is empty. `set_language` resets state. `set_state` does not.
-- **Recommendation:** Carry the producing language inside `State`, and do not index `string_delims` when the index is out of range. Ignore a checkpoint whose language does not match the highlighter.
-- **Fix with:** make-invalid-states-unrepresentable
-- **Effort:** S
-
 ### HIL-7 · P3 · Family-language goldens do not pin a grammar
 
 - **Area:** Tests
