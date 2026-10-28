@@ -1,5 +1,6 @@
 # hi-lite-golden-v1
-# Scope categories are normalized to hi-lite semantic kinds.
+# Explicit semantic fixture (not syntect-generated): syntect scopes the
+# command name (`begin`) while hi-lite marks the braced word (`document`).
 
-line 1: 0..2=number
-line 2: 0..5=normal
+line 1: 0..23=comment
+line 2: 0..6=normal 6..7=bracket 7..15=keyword 15..16=bracket

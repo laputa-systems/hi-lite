@@ -117,9 +117,54 @@ const FIXTURE_SOURCES: &[(&str, Language, &str)] = &[
         include_str!("../tests/fixtures/yaml.snippet"),
     ),
     (
-        "language_probe",
+        "family_c_like",
         Language::Cpp,
-        include_str!("../tests/fixtures/language_probe.snippet"),
+        include_str!("../tests/fixtures/family_c_like.snippet"),
+    ),
+    (
+        "family_lisp",
+        Language::Clojure,
+        include_str!("../tests/fixtures/family_lisp.snippet"),
+    ),
+    (
+        "family_dash",
+        Language::Haskell,
+        include_str!("../tests/fixtures/family_dash.snippet"),
+    ),
+    (
+        "family_hash",
+        Language::Ruby,
+        include_str!("../tests/fixtures/family_hash.snippet"),
+    ),
+    (
+        "erlang",
+        Language::Erlang,
+        include_str!("../tests/fixtures/erlang.snippet"),
+    ),
+    (
+        "latex",
+        Language::LaTeX,
+        include_str!("../tests/fixtures/latex.snippet"),
+    ),
+    (
+        "sql",
+        Language::Sql,
+        include_str!("../tests/fixtures/sql.snippet"),
+    ),
+    (
+        "regex",
+        Language::Regex,
+        include_str!("../tests/fixtures/regex.snippet"),
+    ),
+    (
+        "xml",
+        Language::Xml,
+        include_str!("../tests/fixtures/xml.snippet"),
+    ),
+    (
+        "scss",
+        Language::Scss,
+        include_str!("../tests/fixtures/scss.snippet"),
     ),
     (
         "xsh",
@@ -508,8 +553,17 @@ fixture_benchmarks!(
     (hi_lite_toml, hi_lite_toml_cold, 13),
     (hi_lite_typescript, hi_lite_typescript_cold, 14),
     (hi_lite_yaml, hi_lite_yaml_cold, 15),
-    (hi_lite_language_probe, hi_lite_language_probe_cold, 16),
-    (hi_lite_xsh, hi_lite_xsh_cold, 17),
+    (hi_lite_family_c_like, hi_lite_family_c_like_cold, 16),
+    (hi_lite_family_lisp, hi_lite_family_lisp_cold, 17),
+    (hi_lite_family_dash, hi_lite_family_dash_cold, 18),
+    (hi_lite_family_hash, hi_lite_family_hash_cold, 19),
+    (hi_lite_erlang, hi_lite_erlang_cold, 20),
+    (hi_lite_latex, hi_lite_latex_cold, 21),
+    (hi_lite_sql, hi_lite_sql_cold, 22),
+    (hi_lite_regex, hi_lite_regex_cold, 23),
+    (hi_lite_xml, hi_lite_xml_cold, 24),
+    (hi_lite_scss, hi_lite_scss_cold, 25),
+    (hi_lite_xsh, hi_lite_xsh_cold, 26),
 );
 
 fn main() {

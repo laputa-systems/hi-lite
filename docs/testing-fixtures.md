@@ -12,12 +12,17 @@ sh tools/generate-hi-lite-goldens.sh
 
 The generator uses the standalone Cargo project in `tools/hi-lite-syntect/`.
 Its syntect scope stacks are normalized to hi-lite's semantic kinds, with
-strings kept dominant over nested template interpolation. The script also
-generates goldens for the shared `language_probe.snippet` (a number and a
-string, not a grammar). `parse_golden` in `tests/golden.rs` reads each golden.
+strings kept dominant over nested template interpolation. Each language
+family also gets one golden from a short snippet that exercises the keyword
+and comment delimiters its shared rule table claims. Languages sharing a
+rule table point at the same `.snippet` and `.golden` files (for example,
+every brace-family language shares `family_c_like`). `parse_golden` in
+`tests/golden.rs` reads each golden.
 
-The generator skips Dockerfile, INI, TOML, and XSH; their `.golden` files are
-explicit semantic fixtures maintained separately.
+The generator skips Dockerfile, INI, TOML, LaTeX, and XSH; their `.golden`
+files are explicit semantic fixtures maintained separately. LaTeX stays
+hand-written because syntect scopes the command name (`begin`) while
+hi-lite marks the braced word (`document`).
 
 Unified diff fixtures use hi-lite's diff implementation and can be regenerated
 with:

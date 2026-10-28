@@ -66,6 +66,9 @@ fn classify(scopes: &ScopeStack, text: &str, token: &str) -> &'static str {
     if token == "c" && text.starts_with('#') {
         return "macro";
     }
+    if token == "clojure" && matches!(text, "(" | ")" | "[" | "]") {
+        return "bracket";
+    }
     if names.iter().any(|scope| scope.starts_with("comment")) {
         return "comment";
     }
