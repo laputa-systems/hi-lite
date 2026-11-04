@@ -1,0 +1,41 @@
+name: LexNet spike laboratory
+on:
+  push:
+    branches: [lexnet-spike-lab]
+    paths: [.github/workflows/lexnet-spike.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect public upstream without executing it
+        shell: bash -euo pipefail {0}
+        run: |
+          python3 - <<'PY'
+          import json
+          import urllib.request
+          from urllib.parse import quote
+          base = 'https://huggingface.co'
+          def get(url, limit=2_000_000):
+              with urllib.request.urlopen(url, timeout=45) as response:
+                  data = response.read(limit + 1)
+                  if len(data) > limit:
+                      raise ValueError('upstream response exceeds inspection limit')
+                  return data
+          metadata = json.loads(get(base + '/api/models/alpindale/lexnet'))
+          revision = metadata['sha']
+          names = [entry['rfilename'] for entry in metadata['siblings']]
+          print('UPSTREAM_META ' + json.dumps({'sha': revision, 'files': names, 'cardData': metadata.get('cardData')}))
+          budget = 400_000
+          for name in names:
+              if not name.endswith(('.md', '.py', '.c', '.h', '.json', '.txt')):
+                  continue
+              try:
+                  data = get(base + '/alpindale/lexnet/resolve/' + revision + '/' + quote(name), limit=min(budget, 180_000))
+                  budget -= len(data)
+                  print('UPSTREAM_FILE ' + json.dumps({'name': name, 'content': data.decode('utf-8')}))
+              except Exception as error:
+                  print('UPSTREAM_SKIP ' + json.dumps({'name': name, 'error': str(error)}))
+          PY
