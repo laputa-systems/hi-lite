@@ -10,32 +10,36 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Inspect public upstream without executing it
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Capture pinned public upstream and repository inputs
         shell: bash -euo pipefail {0}
         run: |
+          mkdir -p /tmp/lexnet-input/upstream
+          tar --exclude=.git -czf /tmp/lexnet-input/hi-lite-source.tar.gz .
           python3 - <<'PY'
+          import hashlib
           import json
+          import pathlib
           import urllib.request
-          from urllib.parse import quote
-          base = 'https://huggingface.co'
-          def get(url, limit=2_000_000):
+          revision = 'c59fe649f8143e81adaff70c32d82da4ca0b6ff3'
+          root = pathlib.Path('/tmp/lexnet-input/upstream')
+          manifest = {}
+          for name in ['README.md', 'lexnet.c', 'lexnet_kernel.h', 'lexnet_weights.bin']:
+              url = 'https://huggingface.co/alpindale/lexnet/resolve/' + revision + '/' + name
               with urllib.request.urlopen(url, timeout=45) as response:
-                  data = response.read(limit + 1)
-                  if len(data) > limit:
-                      raise ValueError('upstream response exceeds inspection limit')
-                  return data
-          metadata = json.loads(get(base + '/api/models/alpindale/lexnet'))
-          revision = metadata['sha']
-          names = [entry['rfilename'] for entry in metadata['siblings']]
-          print('UPSTREAM_META ' + json.dumps({'sha': revision, 'files': names, 'cardData': metadata.get('cardData')}))
-          budget = 400_000
-          for name in names:
-              if not name.endswith(('.md', '.py', '.c', '.h', '.json', '.txt')):
-                  continue
-              try:
-                  data = get(base + '/alpindale/lexnet/resolve/' + revision + '/' + quote(name), limit=min(budget, 180_000))
-                  budget -= len(data)
-                  print('UPSTREAM_FILE ' + json.dumps({'name': name, 'content': data.decode('utf-8')}))
-              except Exception as error:
-                  print('UPSTREAM_SKIP ' + json.dumps({'name': name, 'error': str(error)}))
+                  data = response.read(2_000_001)
+              if len(data) > 2_000_000:
+                  raise ValueError('upstream response too large')
+              (root / name).write_bytes(data)
+              manifest[name] = {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
+          (root / 'manifest.json').write_text(json.dumps({'revision': revision, 'files': manifest}, indent=2) + '\n')
+          print(json.dumps(manifest, indent=2))
           PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: lexnet-inputs
+          path: /tmp/lexnet-input
+          retention-days: 3
+          if-no-files-found: error
