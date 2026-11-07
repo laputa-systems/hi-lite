@@ -18,6 +18,9 @@ rustybench = "0.4"
 # regenerate the vocabulary region of `src/languages/xsh.rs`.
 syn = { version = "3", features = ["full", "visit"] }
 proc-macro2 = "1"
+# Dev-only: the generator deduplicates collected names in hash sets. Kept out
+# of `[dependencies]` so the published crate stays dependency-free.
+rustc-hash = "2"
 
 [[bench]]
 name = "hi_lite"

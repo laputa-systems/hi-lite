@@ -29,7 +29,6 @@
 //! to catch drift; that test is `#[ignore]`d because it needs the registry
 //! checkout (`cargo test --test xsh_lang -- --ignored`).
 
-use std::collections::BTreeSet;
 use std::env;
 use std::error::Error;
 use std::fmt::Display;
@@ -37,6 +36,7 @@ use std::path::{Path, PathBuf};
 use std::process;
 
 use proc_macro2::{Delimiter, TokenTree};
+use rustc_hash::FxHashSet;
 use syn::visit::Visit;
 use syn::{Item, MacroDelimiter};
 
@@ -70,7 +70,7 @@ fn err<T>(message: impl Into<String>) -> Result<T, Box<dyn Error>> {
 /// Collect the string patterns from every `"keyword" => Self::Variant` arm,
 /// which is the lexer's authoritative spelling of each keyword.
 struct KeywordCollector {
-    keywords: BTreeSet<String>,
+    keywords: FxHashSet<String>,
 }
 
 impl<'ast> Visit<'ast> for KeywordCollector {
@@ -85,7 +85,7 @@ impl<'ast> Visit<'ast> for KeywordCollector {
     }
 }
 
-fn keywords_from_token_rs(repo: &Path) -> Result<BTreeSet<String>, Box<dyn Error>> {
+fn keywords_from_token_rs(repo: &Path) -> Result<FxHashSet<String>, Box<dyn Error>> {
     let source = std::fs::read_to_string(repo.join("src").join("syntax").join("token.rs"))?;
     let file = syn::parse_file(&source)?;
     for item in file.items {
@@ -98,7 +98,7 @@ fn keywords_from_token_rs(repo: &Path) -> Result<BTreeSet<String>, Box<dyn Error
             };
             if function.sig.ident == "from_ident" {
                 let mut collector = KeywordCollector {
-                    keywords: BTreeSet::new(),
+                    keywords: FxHashSet::default(),
                 };
                 collector.visit_block(&function.block);
                 if collector.keywords.is_empty() {
@@ -146,7 +146,7 @@ fn strip_literal(literal: &str) -> Option<&str> {
     literal.strip_prefix('"').and_then(|s| s.strip_suffix('"'))
 }
 
-fn builtin_types_from_types_rs(src: &Path) -> Result<BTreeSet<String>, Box<dyn Error>> {
+fn builtin_types_from_types_rs(src: &Path) -> Result<FxHashSet<String>, Box<dyn Error>> {
     let source = std::fs::read_to_string(
         src.join("crates")
             .join("xsh-registry")
@@ -159,7 +159,7 @@ fn builtin_types_from_types_rs(src: &Path) -> Result<BTreeSet<String>, Box<dyn E
             && mac.mac.path.is_ident("builtin_type_names")
             && matches!(mac.mac.delimiter, MacroDelimiter::Paren(_))
         {
-            return Ok(BTreeSet::from_iter(names_from_macro_tokens(
+            return Ok(FxHashSet::from_iter(names_from_macro_tokens(
                 &mac.mac.tokens,
             )));
         }
@@ -175,7 +175,7 @@ fn builtin_types_from_types_rs(src: &Path) -> Result<BTreeSet<String>, Box<dyn E
 /// syn keeps the bodies of `vec![...]` invocations opaque, so the struct
 /// literals are read from the raw token stream rather than by visiting.
 struct ModuleNameCollector {
-    names: BTreeSet<String>,
+    names: FxHashSet<String>,
 }
 
 impl<'ast> Visit<'ast> for ModuleNameCollector {
@@ -216,7 +216,7 @@ fn names_from_struct_literal_groups(tokens: &proc_macro2::TokenStream) -> Vec<St
     names
 }
 
-fn modules_from_modules_rs(src: &Path) -> Result<BTreeSet<String>, Box<dyn Error>> {
+fn modules_from_modules_rs(src: &Path) -> Result<FxHashSet<String>, Box<dyn Error>> {
     let source = std::fs::read_to_string(
         src.join("crates")
             .join("xsh-registry")
@@ -230,7 +230,7 @@ fn modules_from_modules_rs(src: &Path) -> Result<BTreeSet<String>, Box<dyn Error
             && function.sig.ident == "build_api_spec"
         {
             let mut collector = ModuleNameCollector {
-                names: BTreeSet::new(),
+                names: FxHashSet::default(),
             };
             collector.visit_block(&function.block);
             if collector.names.is_empty() {
@@ -246,7 +246,7 @@ fn modules_from_modules_rs(src: &Path) -> Result<BTreeSet<String>, Box<dyn Error
 /// `btree_map(vec![...])` call, which is the record schema table.  As with
 /// `ModuleNameCollector`, the tuples are read from the `vec!` tokens.
 struct RecordNameCollector {
-    names: BTreeSet<String>,
+    names: FxHashSet<String>,
 }
 
 impl<'ast> Visit<'ast> for RecordNameCollector {
@@ -284,7 +284,7 @@ fn names_from_tuple_literal_groups(tokens: &proc_macro2::TokenStream) -> Vec<Str
     names
 }
 
-fn records_from_records_rs(src: &Path) -> Result<BTreeSet<String>, Box<dyn Error>> {
+fn records_from_records_rs(src: &Path) -> Result<FxHashSet<String>, Box<dyn Error>> {
     let source = std::fs::read_to_string(
         src.join("crates")
             .join("xsh-registry")
@@ -293,7 +293,7 @@ fn records_from_records_rs(src: &Path) -> Result<BTreeSet<String>, Box<dyn Error
     )?;
     let file = syn::parse_file(&source)?;
     let mut collector = RecordNameCollector {
-        names: BTreeSet::new(),
+        names: FxHashSet::default(),
     };
     for item in file.items {
         if let Item::Fn(function) = item {
@@ -309,7 +309,7 @@ fn records_from_records_rs(src: &Path) -> Result<BTreeSet<String>, Box<dyn Error
 /// Collect the `name` field of every `EffectReference` struct literal in the
 /// `EFFECT_REFERENCES` const.
 struct EffectReferenceCollector {
-    names: BTreeSet<String>,
+    names: FxHashSet<String>,
 }
 
 impl<'ast> Visit<'ast> for EffectReferenceCollector {
@@ -330,7 +330,7 @@ impl<'ast> Visit<'ast> for EffectReferenceCollector {
 
 /// Collect the string literals from the `STREAM_STAGES` const array.
 struct StreamStageCollector {
-    stages: BTreeSet<String>,
+    stages: FxHashSet<String>,
 }
 
 impl<'ast> Visit<'ast> for StreamStageCollector {
@@ -347,7 +347,7 @@ impl<'ast> Visit<'ast> for StreamStageCollector {
 
 fn reference_vocabulary(
     src: &Path,
-) -> Result<(BTreeSet<String>, BTreeSet<String>), Box<dyn Error>> {
+) -> Result<(FxHashSet<String>, FxHashSet<String>), Box<dyn Error>> {
     let source = std::fs::read_to_string(
         src.join("crates")
             .join("xsh-registry")
@@ -356,10 +356,10 @@ fn reference_vocabulary(
     )?;
     let file = syn::parse_file(&source)?;
     let mut effects = EffectReferenceCollector {
-        names: BTreeSet::new(),
+        names: FxHashSet::default(),
     };
     let mut stages = StreamStageCollector {
-        stages: BTreeSet::new(),
+        stages: FxHashSet::default(),
     };
     for item in file.items {
         match item {
@@ -393,26 +393,34 @@ fn single_token(word: &str) -> bool {
 }
 
 fn build_macros(
-    modules: BTreeSet<String>,
-    effects: BTreeSet<String>,
-    stages: BTreeSet<String>,
-    keywords: &BTreeSet<String>,
+    modules: FxHashSet<String>,
+    effects: FxHashSet<String>,
+    stages: FxHashSet<String>,
+    keywords: &FxHashSet<String>,
 ) -> Vec<String> {
-    let mut macros = BTreeSet::new();
+    let mut macros = FxHashSet::default();
     macros.extend(modules);
     macros.extend(effects);
     macros.extend(stages.into_iter().filter(|stage| single_token(stage)));
     macros.extend(RUN_WORDS.iter().map(|s| (*s).to_owned()));
     macros.extend(CORE_BUILTINS.iter().map(|s| (*s).to_owned()));
     macros.retain(|word| !keywords.contains(word));
-    macros.into_iter().collect()
+    // The emitted arrays are compared verbatim against the committed
+    // `src/languages/xsh.rs`, so the set is sorted explicitly instead of
+    // relying on hash iteration order.
+    let mut macros: Vec<String> = macros.into_iter().collect();
+    macros.sort_unstable();
+    macros
 }
 
-fn build_types(builtin: BTreeSet<String>, records: BTreeSet<String>) -> Vec<String> {
+fn build_types(builtin: FxHashSet<String>, records: FxHashSet<String>) -> Vec<String> {
     let mut types = builtin;
     types.extend(EXTRA_TYPES.iter().map(|s| (*s).to_owned()));
     types.extend(records);
-    types.into_iter().collect()
+    // See `build_macros`: the output order is part of the generated file.
+    let mut types: Vec<String> = types.into_iter().collect();
+    types.sort_unstable();
+    types
 }
 
 
@@ -478,7 +486,9 @@ pub fn regenerate(repo: &Path) -> Result<Vocab, Box<dyn Error>> {
     let (effects, stages) = reference_vocabulary(repo)?;
     let types = build_types(builtin_types, records);
     let macros = build_macros(modules, effects, stages, &keywords);
-    let keyword_list: Vec<String> = keywords.into_iter().collect();
+    // Sorted so the generated block is stable regardless of hash iteration order.
+    let mut keyword_list: Vec<String> = keywords.into_iter().collect();
+    keyword_list.sort_unstable();
 
     let body = emit_array("XSH_KEYWORDS", &keyword_list)
         + "\n"
