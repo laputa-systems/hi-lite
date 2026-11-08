@@ -2502,6 +2502,10 @@ pub fn byte_kinds_to_char_kinds_into(raw: &[u8], byte_kinds: &[Kind], out: &mut 
     out.clear();
     if raw.is_ascii() {
         // ASCII fast path: 1 byte = 1 char, tabs expand to 2 display positions
+        if !raw.contains(&b'\t') {
+            out.extend_from_slice(byte_kinds);
+            return;
+        }
         out.reserve(raw.len());
         for (i, &b) in raw.iter().enumerate() {
             out.push(byte_kinds[i]);
@@ -2658,8 +2662,8 @@ impl Highlighter {
     /// Once `scratch` has capacity for the largest line, repeated calls do not
     /// allocate; callers can reserve that capacity once when opening a file.
     pub fn highlight_into<'a>(&mut self, line: &[u8], scratch: &'a mut Vec<Kind>) -> &'a [Kind] {
+        scratch.clear();
         scratch.resize(line.len(), Kind::Normal);
-        scratch.fill(Kind::Normal);
         let kind = highlight_line_into_rules(
             line,
             self.state.accept(self.language),
