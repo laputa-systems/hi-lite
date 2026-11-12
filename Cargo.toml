@@ -13,7 +13,7 @@ exclude = ["tools/bump_minor_release.sh"]
 name = "hi_lite"
 
 [dev-dependencies]
-rustybench = "0.4"
+rustybench = "0.5"
 # Dev-only: `examples/gen_xsh.rs` parses the XSH registry source with `syn` to
 # regenerate the vocabulary region of `src/languages/xsh.rs`.
 syn = { version = "3", features = ["full", "visit"] }
