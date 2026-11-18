@@ -195,6 +195,31 @@ no survivors or timeouts. Reproduce with the same serial
 cargo-mutants 27.1.0 command as the diff census, replacing the
 source selection with `--file src/language.rs`.
 
+**Rust token boundaries**
+
+On the public line highlighter, nested comment closers resume code
+coloring, and the underscore lifetime and character literal have
+distinct kinds. A raw byte prefix requires adjacent letters. A raw
+string with 255 hashes keeps its state across a shorter delimiter
+and closes at the full delimiter. The 256-hash opener does not enter
+raw string state.
+
+At `75eed701595361ae6fb7ff794c76bea833fd8474`, comparing identical
+production sources across the two runs caught five additional
+mutations. The 54 identities moved from 42 caught, seven survivors
+and five timeouts to 47 caught, two survivors and the same five
+timeouts. Both survivors add one iteration at EOF. Neither scanner
+can match a nonempty delimiter at EOF, and both return the same
+highlight range, end position and state. The five timeouts involve
+changes to cursor advancement. Their timeout outcomes are separate
+from test catches.
+
+Reproduce with the earlier serial diff command and the environment
+`RUST_TEST_THREADS=1 CARGO_BUILD_JOBS=1 CARGO_INCREMENTAL=0`.
+Use `--file src/highlight.rs` and
+`--re ' in (rust_raw_string_open|rust_raw_string_close|scan_rust_raw_string|rust_lifetime_end|scan_rust_block_comment)$'`.
+Compare the names and outcomes in `mutants.out/outcomes.json`.
+
 ## Tickets
 
 
