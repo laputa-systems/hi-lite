@@ -68,7 +68,7 @@ jobs:
             while read -r symbol _; do
               case "$symbol" in
                 *DiffScratch*unified_preview_into*|*DiffScratch*diff_into*)
-                  objdump -d --demangle --disassemble="$symbol" "$executable"
+                  objdump -d --disassemble="$symbol" "$executable"
                   ;;
               esac
             done < "$proof/reports/$side-symbols.txt" > "$proof/reports/$side-diff-assembly.txt"
