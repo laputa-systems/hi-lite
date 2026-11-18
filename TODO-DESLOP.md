@@ -34,7 +34,7 @@ failures include status-bar truncation with the long fixture path and a
 terminal-resize timeout. The comparison leaves those editor tests open.
 
 Diagnose ranks the byte-to-character and lexer state boundaries first.
-The public and golden fixtures cover malformed byte input, line-state
+The public and golden fixtures cover mixed-width UTF-8, line-state
 reuse and family-specific token kinds. The quote matcher asks its
 caller for one line. The editor supplies that line from its cursor
 path. The private conversion helper always returns a byte offset;
