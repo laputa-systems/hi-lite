@@ -1,15 +1,17 @@
 use hi_lite::{
-    Highlighter, Kind, Language, Run, State, TextPosition, byte_kinds_to_char_kinds,
+    Highlighter, Kind, Language, Run, State, TextPosition, byte_kinds_to_char_kinds_into,
     find_bracket_match, highlight_line_into, runs,
 };
 
 #[test]
 fn public_bracket_query_only_loads_lines_in_range() {
     let document: &[&[u8]] = &[b"[]"];
+    let multibyte: &[&[u8]] = &["é[".as_bytes()];
     let mut scratch = Vec::new();
     for (lines, start, expected) in [
         (&document[..0], TextPosition::new(0, 0), None),
         (document, TextPosition::new(1, 0), None),
+        (multibyte, TextPosition::new(0, 3), None),
         (
             document,
             TextPosition::new(0, 0),
@@ -24,6 +26,30 @@ fn public_bracket_query_only_loads_lines_in_range() {
             find_bracket_match(start, &mut load, &mut scratch, lines.len()),
             expected
         );
+    }
+}
+
+#[test]
+fn public_bracket_query_honors_the_scan_limit_in_both_directions() {
+    for (closing_line, found) in [(999, true), (1000, false)] {
+        let opening = TextPosition::new(0, 2);
+        let closing = TextPosition::new(closing_line, 1);
+        let mut scratch = Vec::new();
+        let mut load = |line: usize, buffer: &mut Vec<u8>| {
+            buffer.clear();
+            if line == 0 {
+                buffer.extend_from_slice("éλ[".as_bytes());
+            } else if line == closing_line {
+                buffer.extend_from_slice("λ]".as_bytes());
+            }
+        };
+        for (start, other) in [(opening, closing), (closing, opening)] {
+            assert_eq!(
+                find_bracket_match(start, &mut load, &mut scratch, closing_line + 1),
+                found.then_some(other),
+                "query from {start:?} with closing line {closing_line}"
+            );
+        }
     }
 }
 
@@ -57,7 +83,7 @@ fn public_api_clears_reused_slots_between_equal_length_lines() {
 }
 
 #[test]
-fn public_api_supports_stateless_lines_runs_and_char_mapping() {
+fn public_api_supports_stateless_lines_and_runs() {
     let line = b"let x = 1";
     let mut kinds = vec![Kind::Normal; line.len()];
     assert!(highlight_line_into(Language::Rust, State::default(), line, &mut kinds).is_normal());
@@ -79,11 +105,26 @@ fn public_api_supports_stateless_lines_runs_and_char_mapping() {
             },
         ]
     );
+}
 
-    let raw = "a\té".as_bytes();
-    let byte_kinds = vec![Kind::Comment; raw.len()];
-    let chars = byte_kinds_to_char_kinds(raw, &byte_kinds);
-    assert_eq!(chars.len(), 4);
+#[test]
+fn public_display_mapping_preserves_kinds_across_tabs_and_utf8() {
+    let mut display = vec![Kind::Normal; 8];
+    byte_kinds_to_char_kinds_into(
+        "a\té".as_bytes(),
+        &[Kind::Keyword, Kind::Comment, Kind::String, Kind::Normal],
+        &mut display,
+    );
+    assert_eq!(
+        display,
+        [Kind::Keyword, Kind::Comment, Kind::Comment, Kind::String]
+    );
+
+    byte_kinds_to_char_kinds_into(b"\t1", &[Kind::String, Kind::Number], &mut display);
+    assert_eq!(display, [Kind::String, Kind::String, Kind::Number]);
+
+    byte_kinds_to_char_kinds_into(b"1", &[Kind::Number], &mut display);
+    assert_eq!(display, [Kind::Number]);
 }
 
 #[test]
