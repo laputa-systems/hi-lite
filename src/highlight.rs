@@ -3,6 +3,8 @@
 //! Byte-by-byte highlighter inspired by kilo/kibi. Produces one `Kind` per
 //! byte, then maps to per-char highlights for the renderer.
 
+use std::cmp::Ordering;
+
 use crate::languages::{LexerKind, RuleSet};
 
 fn utf8_char_len(first_byte: u8) -> usize {
@@ -1408,8 +1410,16 @@ fn try_operator(line: &[u8], pos: usize, ops: &[&str], hl: &mut [Kind]) -> Optio
 
 /// Binary search a **sorted** keyword list for an exact match.
 #[inline]
-fn keyword_search(id: &[u8], words: &[&str]) -> bool {
-    !words.is_empty() && words.binary_search_by(|w| w.as_bytes().cmp(id)).is_ok()
+fn keyword_search(id: &[u8], mut words: &[&str]) -> bool {
+    while !words.is_empty() {
+        let middle = words.len() / 2;
+        match words[middle].as_bytes().cmp(id) {
+            Ordering::Less => words = &words[middle + 1..],
+            Ordering::Equal => return true,
+            Ordering::Greater => words = &words[..middle],
+        }
+    }
+    false
 }
 
 /// Classify an identifier using the shared rule-table precedence.
