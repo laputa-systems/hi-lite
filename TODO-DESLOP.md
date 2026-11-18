@@ -68,6 +68,29 @@ macOS scheduling cancellation affected both the documentation PR and
 its default base. The retried [macOS job](https://github.com/laputa-systems/hi-lite/actions/runs/44358336521/job/135004491711)
 passed.
 
+The first Tests scope is bracket search and byte-to-display mapping on
+macOS ARM64 at base `62b26cf`. With cargo-llvm-cov 0.9.1, `make coverage`
+passed 136 tests with the external XSH check ignored. Line coverage moved
+from 3,950 to 3,987 of 4,165 and branches from 1,164 to 1,185 of 1,528.
+The public tests check character offsets in both directions at the scan limit,
+columns past the end of a UTF-8 line, and the exact kinds emitted for
+expanded tabs and multi-byte characters when the output buffer is reused.
+Changing the limit to 999 and changing the second kind of a multi-byte
+line's tab to Normal each failed its corresponding test.
+
+Serial cargo-mutants 27.1.0 selected the same 80 identities with
+`--file src/highlight.rs --re 'src/highlight.rs:(23[3-9][0-9]|240[0-7]|24[7-9][0-9]|25[0-3][0-9]):'`,
+`--gitignore true --baseline run --timeout 10 --build-timeout 300 --jobs 1`,
+and `CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=1`. The baseline caught 50,
+missed 26, timed out on three and could not build one because
+`TextPosition` has no `Default`. The candidate caught 73 and missed two,
+with four timeouts and the same unviable mutation. The added UTF-8
+past-end case caught one of the two misses. The other is equivalent:
+all four callers pass an in-bounds byte index, so the companion
+`bi < byte_idx` guard prevents reaching `line.len()`. All four
+mutations that stall offset progress also timed out at 45 seconds.
+The lexer, diff and remaining public boundaries stay in DSLP-4.
+
 ## Tickets
 
 
