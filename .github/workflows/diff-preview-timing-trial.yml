@@ -41,14 +41,14 @@ jobs:
           if grep -E '^source = ' Cargo.lock | grep -Fvx 'source = "registry+https://github.com/rust-lang/crates.io-index"'; then
             exit 1
           fi
+          mv .cargo/config.toml "$proof/registry-after.toml"
+          mv "$proof/source-before/.cargo/config.toml" "$proof/registry-before.toml"
           shopt -s nullglob
           for side in before after; do
             source="$PWD"
             if [[ $side == before ]]; then source="$proof/source-before"; fi
             export CARGO_TARGET_DIR="$proof/target-$side"
-            mv "$source/.cargo/config.toml" "$proof/registry-$side.toml"
             (cd "$source" && cargo bench --locked --bench hi_lite --no-run)
-            mv "$proof/registry-$side.toml" "$source/.cargo/config.toml"
             executables=()
             for file in "$CARGO_TARGET_DIR"/release/deps/hi_lite-* \
               "$CARGO_TARGET_DIR"/release/build/laputa-hi-lite/*/out/hi_lite-*; do
@@ -58,6 +58,8 @@ jobs:
             cp "${executables[0]}" "$proof/bench-$side"
             git -C "$source" rev-parse HEAD
           done
+          mv "$proof/registry-after.toml" .cargo/config.toml
+          mv "$proof/registry-before.toml" "$proof/source-before/.cargo/config.toml"
           shasum -a 256 "$proof/bench-before" "$proof/bench-after"
           wc -c "$proof/bench-before" "$proof/bench-after"
           uname -smr
