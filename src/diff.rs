@@ -224,7 +224,8 @@ impl DiffScratch {
                 continue;
             }
             let start = index.saturating_sub(context_lines);
-            let end = (index + 1).saturating_add(context_lines).min(lines.len());
+            let next_index = index + 1;
+            let end = next_index + context_lines.min(lines.len() - next_index);
             self.include[start..end].fill(true);
         }
 
