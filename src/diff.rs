@@ -137,9 +137,10 @@ impl DiffScratch {
         let stride = new_len + 1;
         let cells = (old_len + 1) * stride;
         self.table.resize(cells, 0);
-        self.table.fill(0);
+        self.table[..stride].fill(0);
 
         for old_index in 1..=old_len {
+            self.table[old_index * stride] = 0;
             for new_index in 1..=new_len {
                 let value = if self.old_lines[old_index - 1].text(old_text)
                     == self.new_lines[new_index - 1].text(new_text)
@@ -216,6 +217,7 @@ impl DiffScratch {
             });
             return;
         }
+        let context_lines = context_lines.min(lines.len());
         let max_display_lines = max_display_lines.max(1);
         self.include.resize(lines.len(), false);
         self.include.fill(false);
@@ -392,6 +394,28 @@ mod tests {
         assert_eq!(lines[1].old_line, Some(2));
         assert_eq!(lines[2].op, DiffOp::Add);
         assert_eq!(lines[2].new_line, Some(2));
+    }
+
+    #[test]
+    fn reused_alignment_clears_boundaries_when_the_stride_changes() {
+        for (old, new, expected) in [
+            (
+                b"a\n".as_slice(),
+                b"b\nb\nb\n".as_slice(),
+                [DiffOp::Remove, DiffOp::Add, DiffOp::Add, DiffOp::Add],
+            ),
+            (
+                b"a\na\n",
+                b"b\nb\n",
+                [DiffOp::Remove, DiffOp::Remove, DiffOp::Add, DiffOp::Add],
+            ),
+        ] {
+            let mut scratch = DiffScratch::new();
+            let mut lines = Vec::new();
+            scratch.diff_into(b"a\n", b"a\n", &mut lines);
+            scratch.diff_into(old, new, &mut lines);
+            assert!(lines.iter().map(|line| line.op).eq(expected));
+        }
     }
 
     #[test]

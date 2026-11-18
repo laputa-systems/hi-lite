@@ -129,6 +129,34 @@ fn numbered_rows(source: &[u8]) -> impl Iterator<Item = (u32, &[u8])> {
         .map(|(index, row)| ((index + 1) as u32, &row[..row.len() - 1]))
 }
 
+#[test]
+fn maximum_context_includes_every_available_diff_row() {
+    let preview = diff_preview(b"old\nkeep\n", b"new\nkeep\n", usize::MAX, usize::MAX);
+    assert_eq!(
+        preview,
+        [
+            DiffPreviewLine {
+                op: DiffPreviewOp::Deletion,
+                old_line: Some(1),
+                new_line: None,
+                text: DiffPreviewText::Source(b"old"),
+            },
+            DiffPreviewLine {
+                op: DiffPreviewOp::Addition,
+                old_line: None,
+                new_line: Some(1),
+                text: DiffPreviewText::Source(b"new"),
+            },
+            DiffPreviewLine {
+                op: DiffPreviewOp::Context,
+                old_line: Some(2),
+                new_line: Some(2),
+                text: DiffPreviewText::Source(b"keep"),
+            },
+        ],
+    );
+}
+
 fn assert_fixture(root: &Path, name: &str) {
     let old = fs::read(root.join(format!("{name}.old"))).expect("read old fixture");
     let new = fs::read(root.join(format!("{name}.new"))).expect("read new fixture");

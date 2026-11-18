@@ -145,6 +145,33 @@ in DSLP-4. At a mismatched LCS cell, comparing the left neighbor to
 `max(left, up)` is equivalent to comparing it to `up`. That explains
 the remaining backtracking mutation at line 179.
 
+**Full-range diff preview**
+
+`DiffScratch::unified_preview_into` panicked on `usize::MAX` at
+`5a38860`. The boundary test calls the public method and checks all
+available preview rows in order. Bound the context to the input length
+before the row loop. The alignment table now clears only the top row
+and first column before using them. The recurrence overwrites the
+interior cells in order. Removing either clear breaks the corresponding
+scratch-reuse case when the row stride changes.
+
+[Native ARM64 run 44386818140](https://github.com/laputa-systems/hi-lite/actions/runs/44386818140)
+compared `5a38860` with `884618d` on the same Linux runner using
+five interleaved pairs and the pinned Rust compiler. Cold diff fixture
+medians were 1.020325 ms and 1.010567 ms. Warm medians were 0.653125 ms
+and 0.644558 ms. The before and after ranges did not overlap. Allocation
+counts, bytes and maximum live allocations matched. The compiled benchmark
+was 24 bytes larger and the median process RSS was within 8 KiB. The job
+used the identical Cargo lockfile on both sides and fetched its checksummed
+public dependencies directly while the mirror recovered. The temporary
+workflow at `884618d` records the benchmark command and readiness checks.
+
+A local differential check reused the same scratch storage across all
+3,969 pairs of binary-alphabet documents containing zero to five lines.
+The complete diff and four preview settings per pair produced 19,845
+matching records. Their SHA-256 was
+`75d8115eb782b9a25111a1d4ae3e0c98e05f6f96a1fbc629fee9a549173e95ac`.
+
 ## Tickets
 
 
