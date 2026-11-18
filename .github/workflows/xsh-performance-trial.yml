@@ -67,9 +67,11 @@ jobs:
             if (( pair % 2 == 0 )); then sides=(after before); fi
             for side in "${sides[@]}"; do
               wait_quiet
-              "$proof/bench-$side" 'hi_lite_(xsh(_cold)?|highlight_all_goldens_(warm|cold))$' \
+              result="$proof/reports/$pair-$side.json"
+              "$proof/bench-$side" --bench 'hi_lite_(xsh(_cold)?|highlight_all_goldens_(warm|cold))$' \
                 --format json --sample-count 60 --min-time 0.5 --max-time 1.5 \
-                > "$proof/reports/$pair-$side.json"
+                > "$result"
+              test -s "$result"
               check_quiet || { cat "$proof/reports/readiness.log" >&2; exit 75; }
             done
           done
