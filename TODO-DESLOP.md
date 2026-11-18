@@ -24,6 +24,15 @@ supplies an in-range cursor, so this is a public API edge case rather than
 a demonstrated editor crash. The remaining lexer and fixture tooling review
 stay open under DSLP-2.
 
+The bracket regression now checks an empty document, an out-of-range line
+in a nonempty document, and a valid matching pair. `make test lint` passes.
+The editor at `b29c90178b664e12d3c4f7f0f4f49772aee21c33` compiled
+against the local candidate through Cargo's `patch.stuff-native` override.
+Both the candidate and the original locked dependency produced the same
+149 passing and 14 failing end-to-end tests in the macOS checkout. The
+failures include status-bar truncation with the long fixture path and a
+terminal-resize timeout. The comparison leaves those editor tests open.
+
 ## Tickets
 
 ### DSLP-2 · P2 · Diagnose: ultrareview into this backlog
@@ -61,14 +70,3 @@ stay open under DSLP-2.
 - **Recommendation:** Run the deslop Dead code step. Accept: tools clean or allowlisted with reasons; walk-backs filed as Needs owner tickets.
 - **Fix with:** deslop
 - **Effort:** M
-
-
-### DSLP-6 · P3 · Reject an out-of-range bracket starting line
-
-- **Area:** delimiter matching
-- **Where:** src/highlight.rs:2331; tests/api.rs
-- **Problem:** A built-crate fixture with line_count 0 and start line 0 invoked an indexing callback and panicked before the API could return None. The callback only has lines in 0..line_count.
-- **Recommendation:** Return None before calling the line loader when the start is outside line_count. Re-run the empty-slice fixture and exercise a valid text line with a match as a control.
-- **Fix with:** test-audit
-- **Effort:** S
-

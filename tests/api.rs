@@ -1,6 +1,31 @@
 use hi_lite::{
-    Highlighter, Kind, Language, Run, State, byte_kinds_to_char_kinds, highlight_line_into, runs,
+    Highlighter, Kind, Language, Run, State, TextPosition, byte_kinds_to_char_kinds,
+    find_bracket_match, highlight_line_into, runs,
 };
+
+#[test]
+fn public_bracket_query_only_loads_lines_in_range() {
+    let document: &[&[u8]] = &[b"[]"];
+    let mut scratch = Vec::new();
+    for (lines, start, expected) in [
+        (&document[..0], TextPosition::new(0, 0), None),
+        (document, TextPosition::new(1, 0), None),
+        (
+            document,
+            TextPosition::new(0, 0),
+            Some(TextPosition::new(0, 1)),
+        ),
+    ] {
+        let mut load = |index: usize, buffer: &mut Vec<u8>| {
+            buffer.clear();
+            buffer.extend_from_slice(lines[index]);
+        };
+        assert_eq!(
+            find_bracket_match(start, &mut load, &mut scratch, lines.len()),
+            expected
+        );
+    }
+}
 
 #[test]
 fn public_api_streams_opaque_state_and_reuses_output() {

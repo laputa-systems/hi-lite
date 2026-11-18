@@ -2327,13 +2327,17 @@ fn bracket_pair(ch: u8) -> Option<(u8, bool)> {
 ///
 /// `get_line(idx, buf)` fills `buf` with the bytes of line `idx`. `scratch` is
 /// reused across calls. Brackets inside strings and comments count. The search
-/// stops after 1000 lines and returns `None` when it finds no match.
+/// stops after 1000 lines. It returns `None` for a start outside `line_count`
+/// or when it finds no match.
 pub fn find_bracket_match(
     pos: TextPosition,
     get_line: &mut impl FnMut(usize, &mut Vec<u8>),
     scratch: &mut Vec<u8>,
     line_count: usize,
 ) -> Option<TextPosition> {
+    if pos.line >= line_count {
+        return None;
+    }
     get_line(pos.line, scratch);
     // Convert char column to byte index
     let byte_idx = character_column_to_byte(scratch, pos.column)?;
