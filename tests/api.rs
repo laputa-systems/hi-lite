@@ -192,6 +192,28 @@ fn language_detection_owns_file_extension_and_shebang_mapping() {
 }
 
 #[test]
+fn shebang_uses_the_interpreter_basename_and_ascii_separators() {
+    for (line, expected) in [
+        (b"#! /bin/sh\r\n".as_slice(), Some(Language::Bash)),
+        (b"#!/usr/bin/env\t-S\tpython3.15.1 -B", Some(Language::Python)),
+        (b"#!/usr/bin/env -S /opt/bin/node --version", Some(Language::JavaScript)),
+        (b"#! /opt/\xff/bin/xsht", Some(Language::Xsh)),
+        (b"#!/usr/bin/env -S", None),
+        (b"#!/opt/bin/", None),
+        (b"#!/opt/bin/launcher python3", None),
+    ] {
+        assert_eq!(Language::detect(None, line), expected, "{line:?}");
+    }
+}
+
+#[test]
+fn language_detection_preserves_the_case_sensitive_objective_c_extensions() {
+    assert_eq!(Language::from_file_ext(".m"), Some(Language::ObjectiveC));
+    assert_eq!(Language::from_file_ext(".M"), Some(Language::ObjectiveCpp));
+    assert_eq!(Language::from_file_ext("MM"), Some(Language::ObjectiveCpp));
+}
+
+#[test]
 fn state_checkpoints_do_not_cross_languages() {
     let mut python = Highlighter::new(Language::Python);
     let mut scratch = Vec::new();

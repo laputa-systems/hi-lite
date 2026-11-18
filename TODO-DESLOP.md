@@ -172,6 +172,21 @@ The complete diff and four preview settings per pair produced 19,845
 matching records. Their SHA-256 was
 `75d8115eb782b9a25111a1d4ae3e0c98e05f6f96a1fbc629fee9a549173e95ac`.
 
+**Language detection**
+
+The public cases cover CRLF, tab-separated `env -S` arguments,
+a multi-part interpreter version, and a non-UTF-8 path prefix.
+Unknown interpreters and a missing `env` command stay unresolved.
+The extension cases preserve `.m` for Objective-C and `.M` for
+Objective-C++.
+
+All 18 API tests passed. At `e91982b`, six independent faults in
+`src/language.rs` failed the two new cases. They remove ASCII line
+trimming, remove the tab separator, read the flag as the interpreter,
+split the version at its last dot, compare the special `M` without
+case, or keep the leading extension dot. Run
+`cargo test --locked --test api` with each fault in a separate copy.
+
 ## Tickets
 
 
