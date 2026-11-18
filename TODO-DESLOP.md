@@ -50,17 +50,27 @@ The tracked vocabulary records a source directory but no registry
 revision. DSLP-7 tracks fixing the supported revision and updating
 the generated vocabulary.
 
+Types measured the library with its pinned Rust toolchain on macOS
+ARM64. Clippy reported seven possible truncations, one possible sign
+loss and two wildcard enum arms on both revisions. The casts cover
+bounded diff rows, raw-string hash counts, static delimiter indexes
+and a nonnegative reverse scan cursor. The wildcard arms implement
+shared lexer dispatch. Unsafe code, unwrap, expect, redundant clone,
+needless pass-by-value and the single-variant wildcard lint each
+reported zero locations. None of the candidate lints met the adoption
+threshold.
+
+The bracket and quote matchers now receive a concrete offset from
+`character_column_to_byte`. A scratch return of `None` failed with
+E0308 at that helper. The normal library check passed after restoring
+the branch, and all 134 ordinary tests and Clippy passed. The previous
+macOS scheduling cancellation affected both the documentation PR and
+its default base. The retried [macOS job](https://github.com/laputa-systems/hi-lite/actions/runs/44358336521/job/135004491711)
+passed.
+
 ## Tickets
 
 
-### DSLP-3 · P2 · Types: strict profile and typing findings
-
-- **Area:** deslop · types
-- **Where:** type checker and lint configuration; Rust sources
-- **Problem:** The strict-profile candidates in the deslop skill's tools reference have not been measured here.
-- **Recommendation:** Run the deslop Types step. Accept: clean at the adopted profile, escape hatches not increased, witnesses recorded.
-- **Fix with:** deslop
-- **Effort:** M
 
 ### DSLP-4 · P2 · Tests: coverage, boundary gaps, mutation
 
