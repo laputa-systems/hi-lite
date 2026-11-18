@@ -6,11 +6,18 @@ render them.
 
 ## Install
 
-Add the package to `Cargo.toml`:
+Configure the Stuff native registry in your project's `.cargo/config.toml`.
+
+```toml
+[registries.stuff-native]
+index = "sparse+https://crates.17166969.xyz/current/registry/"
+```
+
+Add the dependency to `Cargo.toml`.
 
 ```toml
 [dependencies]
-laputa-hi-lite = "0.3"
+laputa-hi-lite = { version = "0.4", registry = "stuff-native" }
 ```
 
 The package is named `laputa-hi-lite`; import its Rust library as `hi_lite`:
