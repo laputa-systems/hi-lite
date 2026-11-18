@@ -2340,7 +2340,7 @@ pub fn find_bracket_match(
     }
     get_line(pos.line, scratch);
     // Convert char column to byte index
-    let byte_idx = character_column_to_byte(scratch, pos.column)?;
+    let byte_idx = character_column_to_byte(scratch, pos.column);
     if byte_idx >= scratch.len() {
         return None;
     }
@@ -2431,7 +2431,7 @@ pub fn find_quote_match(
     scratch: &mut Vec<u8>,
 ) -> Option<TextPosition> {
     get_line(pos.line, scratch);
-    let byte_idx = character_column_to_byte(scratch, pos.column)?;
+    let byte_idx = character_column_to_byte(scratch, pos.column);
     if byte_idx >= scratch.len() {
         return None;
     }
@@ -2467,9 +2467,9 @@ pub fn find_quote_match(
     None
 }
 
-fn character_column_to_byte(line: &[u8], character_column: usize) -> Option<usize> {
+fn character_column_to_byte(line: &[u8], character_column: usize) -> usize {
     if line.is_ascii() {
-        return Some(character_column.min(line.len()));
+        return character_column.min(line.len());
     }
     let mut bi = 0;
     let mut ci = 0;
@@ -2477,7 +2477,7 @@ fn character_column_to_byte(line: &[u8], character_column: usize) -> Option<usiz
         bi += utf8_char_len(line[bi]);
         ci += 1;
     }
-    Some(bi)
+    bi
 }
 
 fn byte_to_character_column(line: &[u8], byte_idx: usize) -> usize {
