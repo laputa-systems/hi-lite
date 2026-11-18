@@ -216,7 +216,12 @@ impl DiffScratch {
             });
             return;
         }
-        let context_lines = context_lines.min(lines.len());
+        let context_lines = if context_lines > isize::MAX as usize {
+            std::hint::cold_path();
+            lines.len()
+        } else {
+            context_lines
+        };
         let max_display_lines = max_display_lines.max(1);
         self.include.resize(lines.len(), false);
         self.include.fill(false);
