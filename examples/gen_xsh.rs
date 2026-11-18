@@ -1,10 +1,9 @@
 //! Regenerate the XSH vocabulary region inside `src/languages/xsh.rs`, the
 //! syntax-highlighting vocabulary used by the byte-oriented highlighter.
 //!
-//! The XSH language keeps its public surface in the registry at `$XSH_REPO`
-//! (default `~/d/laputa-systems/xsh`).  The vocabulary is read from the
-//! registry's own source with `syn`, so no compiled binary or JSON side
-//! channel is involved:
+//! Use `$XSH_REPO` to locate a Git repository carrying the pinned registry
+//! commit. The default is `~/d/laputa-systems/xsh`. The generator parses the
+//! following files with `syn`:
 //!
 //!   * `src/syntax/token.rs` -- keyword match arms in `Keyword::from_ident`;
 //!   * `crates/xsh-registry/src/types.rs` -- the `builtin_type_names!` table;
@@ -17,8 +16,8 @@
 //! It emits the sorted `XSH_KEYWORDS`, `XSH_TYPES`, and `XSH_MACROS` arrays
 //! and splices them in place between the `BEGIN/END GENERATED XSH VOCABULARY`
 //! markers in `xsh.rs`, so the hand-maintained rules and scanner around them
-//! are untouched.  Regenerate after the XSH language changes keywords, types,
-//! modules, or stage names:
+//! are untouched. Update `XSH_REVISION` when advancing vocabulary support,
+//! then regenerate:
 //!
 //!     make gen-xsh
 //!
@@ -33,12 +32,14 @@ use std::env;
 use std::error::Error;
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
-use std::process;
+use std::process::{self, Command};
 
 use proc_macro2::{Delimiter, TokenTree};
 use rustc_hash::FxHashSet;
 use syn::visit::Visit;
 use syn::{Item, MacroDelimiter};
+
+const XSH_REVISION: &str = "c83b870d1b4e55871a319e1567cd22815986c4b1";
 
 // Containers and constructor names used in signatures but not listed in the
 // registry's `builtin_type_names!` table.
@@ -66,6 +67,24 @@ fn err<T>(message: impl Into<String>) -> Result<T, Box<dyn Error>> {
     Err(Box::new(GenError(message.into())))
 }
 
+fn read_registry_file(repo: &Path, path: &str) -> Result<String, Box<dyn Error>> {
+    let object = format!("{XSH_REVISION}:{path}");
+    let result = Command::new("git")
+        .arg("--no-replace-objects")
+        .arg("-C")
+        .arg(repo)
+        .args(["show", &object])
+        .output()?;
+    if !result.status.success() {
+        return err(format!(
+            "cannot read {object} from {}: {}",
+            repo.display(),
+            String::from_utf8_lossy(&result.stderr).trim()
+        ));
+    }
+    Ok(String::from_utf8(result.stdout)?)
+}
+
 
 /// Collect the string patterns from every `"keyword" => Self::Variant` arm,
 /// which is the lexer's authoritative spelling of each keyword.
@@ -86,7 +105,7 @@ impl<'ast> Visit<'ast> for KeywordCollector {
 }
 
 fn keywords_from_token_rs(repo: &Path) -> Result<FxHashSet<String>, Box<dyn Error>> {
-    let source = std::fs::read_to_string(repo.join("src").join("syntax").join("token.rs"))?;
+    let source = read_registry_file(repo, "src/syntax/token.rs")?;
     let file = syn::parse_file(&source)?;
     for item in file.items {
         let Item::Impl(impl_block) = item else {
@@ -146,13 +165,8 @@ fn strip_literal(literal: &str) -> Option<&str> {
     literal.strip_prefix('"').and_then(|s| s.strip_suffix('"'))
 }
 
-fn builtin_types_from_types_rs(src: &Path) -> Result<FxHashSet<String>, Box<dyn Error>> {
-    let source = std::fs::read_to_string(
-        src.join("crates")
-            .join("xsh-registry")
-            .join("src")
-            .join("types.rs"),
-    )?;
+fn builtin_types_from_types_rs(repo: &Path) -> Result<FxHashSet<String>, Box<dyn Error>> {
+    let source = read_registry_file(repo, "crates/xsh-registry/src/types.rs")?;
     let file = syn::parse_file(&source)?;
     for item in file.items {
         if let Item::Macro(mac) = &item
@@ -216,14 +230,8 @@ fn names_from_struct_literal_groups(tokens: &proc_macro2::TokenStream) -> Vec<St
     names
 }
 
-fn modules_from_modules_rs(src: &Path) -> Result<FxHashSet<String>, Box<dyn Error>> {
-    let source = std::fs::read_to_string(
-        src.join("crates")
-            .join("xsh-registry")
-            .join("src")
-            .join("signature")
-            .join("modules.rs"),
-    )?;
+fn modules_from_modules_rs(repo: &Path) -> Result<FxHashSet<String>, Box<dyn Error>> {
+    let source = read_registry_file(repo, "crates/xsh-registry/src/signature/modules.rs")?;
     let file = syn::parse_file(&source)?;
     for item in file.items {
         if let Item::Fn(function) = item
@@ -284,13 +292,8 @@ fn names_from_tuple_literal_groups(tokens: &proc_macro2::TokenStream) -> Vec<Str
     names
 }
 
-fn records_from_records_rs(src: &Path) -> Result<FxHashSet<String>, Box<dyn Error>> {
-    let source = std::fs::read_to_string(
-        src.join("crates")
-            .join("xsh-registry")
-            .join("src")
-            .join("records.rs"),
-    )?;
+fn records_from_records_rs(repo: &Path) -> Result<FxHashSet<String>, Box<dyn Error>> {
+    let source = read_registry_file(repo, "crates/xsh-registry/src/records.rs")?;
     let file = syn::parse_file(&source)?;
     let mut collector = RecordNameCollector {
         names: FxHashSet::default(),
@@ -346,14 +349,9 @@ impl<'ast> Visit<'ast> for StreamStageCollector {
 }
 
 fn reference_vocabulary(
-    src: &Path,
+    repo: &Path,
 ) -> Result<(FxHashSet<String>, FxHashSet<String>), Box<dyn Error>> {
-    let source = std::fs::read_to_string(
-        src.join("crates")
-            .join("xsh-registry")
-            .join("src")
-            .join("reference.rs"),
-    )?;
+    let source = read_registry_file(repo, "crates/xsh-registry/src/reference.rs")?;
     let file = syn::parse_file(&source)?;
     let mut effects = EffectReferenceCollector {
         names: FxHashSet::default(),
@@ -477,7 +475,7 @@ pub fn splice_into(source: &str, block: &str) -> Result<String, Box<dyn Error>> 
     }
 }
 
-/// Recompute the vocabulary from the registry source at `repo`.
+/// Recompute the vocabulary from the pinned registry revision in `repo`.
 pub fn regenerate(repo: &Path) -> Result<Vocab, Box<dyn Error>> {
     let keywords = keywords_from_token_rs(repo)?;
     let builtin_types = builtin_types_from_types_rs(repo)?;
@@ -497,13 +495,12 @@ pub fn regenerate(repo: &Path) -> Result<Vocab, Box<dyn Error>> {
         + &emit_array("XSH_MACROS", &macros);
     let block = format!(
         "{START_MARKER}\n\
-         // Generated from {}\n\
+         // Generated from laputa-systems/xsh at {XSH_REVISION}\n\
          // XSH syntax-highlighting vocabulary, generated from the XSH registry source.\n\
          // DO NOT EDIT BY HAND.  Regenerate after the XSH language or standard library\n\
          // changes keywords, types, modules, or stream stages: `make gen-xsh`.\n\
          {body}\
-         {END_MARKER}\n",
-        repo.display()
+         {END_MARKER}\n"
     );
 
     Ok(Vocab {
@@ -549,7 +546,7 @@ fn run() -> Result<bool, Box<dyn Error>> {
             Some("--help" | "-h") => {
                 println!(
                     "usage: gen-xsh [--repo PATH] [--out PATH] [--check]\n\
-                     reads the vocabulary from the XSH registry source with `syn`\n\
+                     reads the vocabulary from the pinned XSH Git revision\n\
                      and rewrites (or checks) the generated region of src/languages/xsh.rs."
                 );
                 process::exit(0);
@@ -557,13 +554,6 @@ fn run() -> Result<bool, Box<dyn Error>> {
             _ => eprintln!("ignoring unknown argument: {:?}", arg),
         }
     }
-    if !repo.join("Cargo.toml").exists() {
-        return err(format!(
-            "{} is not an xsh checkout (no Cargo.toml); set XSH_REPO",
-            repo.display()
-        ));
-    }
-
     let vocab = regenerate(&repo)?;
     let existing = std::fs::read_to_string(&out).unwrap_or_default();
     let spliced = splice_into(&existing, &vocab.content)?;

@@ -5,7 +5,7 @@ Rust library for line-oriented syntax highlighting and renderer-neutral diff pre
 - Build: `cargo build --locked`
 - Test: `make test`
 - Check: `make lint`
-- Regenerate XSH vocabulary: `make gen-xsh` (`XSH_REPO`, otherwise `~/d/laputa-systems/xsh`). See `examples/gen_xsh.rs`.
+- Regenerate XSH vocabulary with `make gen-xsh`. Point `XSH_REPO` at a Git repository carrying `XSH_REVISION` in `examples/gen_xsh.rs`. The default is `~/d/laputa-systems/xsh`.
 - Publish: `make publish`
 - `Highlighter` returns one semantic `Kind` per input byte and retains lexical `State` across lines.
 - Highlight kinds and `Run` offsets are byte-indexed.
@@ -17,7 +17,7 @@ Rust library for line-oriented syntax highlighting and renderer-neutral diff pre
 - `tests/api.rs` covers state reuse, byte and character boundaries, runs, language aliases, extension and shebang detection, and public XSH scanning.
 - `tests/golden.rs` compares syntax results with checked-in Syntect-derived fixtures. See [fixture provenance and regeneration](docs/testing-fixtures.md).
 - `tests/diff.rs` covers unified diff fixture output. `src/diff.rs` tests the structured preview and diff bounds.
-- `tests/xsh_lang.rs` compares generated vocabulary with an external XSH checkout. It is ignored in the ordinary suite. Set `XSH_REPO` and run `cargo test --locked --test xsh_lang -- --ignored` to exercise it separately.
+- `tests/xsh_lang.rs` compares the entire generated region with the pinned XSH registry revision. Set `XSH_REPO` and run `cargo test --locked --test xsh_lang -- --ignored`.
 - The editor `e` consumes highlighting and diff previews. Its tests against the candidate crate are the downstream check for changes to those APIs.
 - `cargo bench --bench hi_lite` measures warm and cold highlighting, per-snippet work, and diff fixtures. Use [the benchmark procedure](docs/benchmarks.md) for changes to those paths.
 - This library exposes Rust APIs. It has no user CLI, network endpoint, or persisted data format.
