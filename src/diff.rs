@@ -216,12 +216,7 @@ impl DiffScratch {
             });
             return;
         }
-        let context_lines = if context_lines > isize::MAX as usize {
-            std::hint::cold_path();
-            lines.len()
-        } else {
-            context_lines
-        };
+        let context_lines = context_lines.min(lines.len());
         let max_display_lines = max_display_lines.max(1);
         self.include.resize(lines.len(), false);
         self.include.fill(false);
@@ -237,8 +232,8 @@ impl DiffScratch {
         output.clear();
         let mut previous_included = false;
         let mut emitted_source_rows = 0;
-        for (index, line) in lines.iter().enumerate() {
-            if !self.include[index] {
+        for (line, &included) in lines.iter().zip(&self.include) {
+            if !included {
                 previous_included = false;
                 continue;
             }
