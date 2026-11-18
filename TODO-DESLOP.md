@@ -121,6 +121,30 @@ filters and `--bench --format json --sample-count 60 --min-time 0.5
 --max-time 1.5` on a quiet native ARM64 host.
 
 
+**Diff behavior tests**
+
+Serial cargo-mutants 27.1.0 selected all 148 `src/diff.rs` identities
+at base `5a38860`. The baseline caught 116, missed 26, timed out on two
+and could not build four. Use `--file src/diff.rs --gitignore true
+--baseline run --timeout 10 --build-timeout 300 --jobs 1` on macOS
+ARM64 with `CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=1`. The first
+candidate caught 131 and missed 11 with the same other outcomes.
+The final two cases caught six of those 11 in a focused rerun.
+The measured scope now accounts for 137 caught, five missed, two
+confirmed hangs and four compiler rejections.
+
+The cases exercise exact numbered rows with repeated lines, both
+exhausted-side paths, the final line without a newline, a source row
+matching the omission text, and a reused preview at the zero-row
+limit. Repeating the cursor-update mutations at lines 187 and 195
+with a 45-second timeout confirmed both hangs. The four compiler
+rejections are `E0277` because diff row types have no `Default`.
+The four allocation-capacity mutations change allocation behavior
+with the same diff rows. They retain their performance disposition
+in DSLP-4. At a mismatched LCS cell, comparing the left neighbor to
+`max(left, up)` is equivalent to comparing it to `up`. That explains
+the remaining backtracking mutation at line 179.
+
 **Full-range diff preview**
 
 `DiffScratch::unified_preview_into` panicked on `usize::MAX` at
@@ -141,6 +165,12 @@ was 24 bytes larger and the median process RSS was within 8 KiB. The job
 used the identical Cargo lockfile on both sides and fetched its checksummed
 public dependencies directly while the mirror recovered. The temporary
 workflow at `884618d` records the benchmark command and readiness checks.
+
+A local differential check reused the same scratch storage across all
+3,969 pairs of binary-alphabet documents containing zero to five lines.
+The complete diff and four preview settings per pair produced 19,845
+matching records. Their SHA-256 was
+`75d8115eb782b9a25111a1d4ae3e0c98e05f6f96a1fbc629fee9a549173e95ac`.
 
 ## Tickets
 

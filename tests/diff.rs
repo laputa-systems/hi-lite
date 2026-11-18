@@ -5,7 +5,7 @@ use std::path::Path;
 
 use hi_lite::{
     DEFAULT_CONTEXT_LINES, DEFAULT_MAX_DISPLAY_LINES, DiffLine, DiffOp, DiffPreviewLine,
-    DiffPreviewOp, DiffPreviewText, diff, diff_preview,
+    DiffPreviewOp, DiffPreviewText, DiffScratch, diff, diff_preview,
 };
 
 const FIXTURES: &[&str] = &["diff-basic", "diff-hunks"];
@@ -27,6 +27,106 @@ fn trailing_newline_changes_use_fx_markers() {
     let added = diff(b"line", b"line\n");
     assert_eq!(added[1].op, DiffOp::Add);
     assert_eq!(added[1].text, b"(trailing newline added)");
+}
+
+#[test]
+fn a_source_line_matching_the_omission_text_stays_a_deletion() {
+    let preview = diff_preview(b"(diff omitted)\n", b"", 0, 1);
+    assert_eq!(
+        preview,
+        [DiffPreviewLine {
+            op: DiffPreviewOp::Deletion,
+            old_line: Some(1),
+            new_line: None,
+            text: DiffPreviewText::Source(b"(diff omitted)"),
+        }],
+    );
+}
+
+#[test]
+fn reused_preview_clears_context_and_respects_the_zero_row_limit() {
+    let mut scratch = DiffScratch::new();
+    let mut lines = Vec::new();
+    let mut preview = Vec::new();
+
+    scratch.diff_into(b"head\nold\ntail\n", b"head\nnew\ntail\n", &mut lines);
+    scratch.unified_preview_into(&lines, 0, 0, &mut preview);
+    assert_eq!(
+        preview,
+        [
+            DiffPreviewLine {
+                op: DiffPreviewOp::Deletion,
+                old_line: Some(2),
+                new_line: None,
+                text: DiffPreviewText::Source(b"old"),
+            },
+            DiffPreviewLine {
+                op: DiffPreviewOp::Elision,
+                old_line: None,
+                new_line: None,
+                text: DiffPreviewText::Elision,
+            },
+        ],
+    );
+
+    let unchanged = b"head\nold\nnew\ntail\n";
+    scratch.diff_into(unchanged, unchanged, &mut lines);
+    scratch.unified_preview_into(&lines, 0, 4, &mut preview);
+    assert!(preview.is_empty());
+}
+
+#[test]
+fn reused_diff_keeps_the_longest_alignment_and_numbered_rows() {
+    let cases: &[(&[u8], &[u8], usize)] = &[
+        (b"a\nb\na\nc\n", b"b\na\nb\nc\n", 3),
+        (b"a\nb\nc\n", b"b\nc\na\n", 2),
+        (b"a\nb\nc\n", b"c\na\nb\n", 2),
+        (b"", b"a\nb\n", 0),
+        (b"a\nb\n", b"", 0),
+    ];
+    let mut scratch = DiffScratch::new();
+    let mut lines = Vec::new();
+
+    for &(old, new, equal_count) in cases {
+        scratch.diff_into(old, new, &mut lines);
+        let actual_equal_count = lines.iter().filter(|line| line.op == DiffOp::Equal).count();
+        assert_eq!(actual_equal_count, equal_count);
+
+        let old_rows = lines.iter().filter_map(|row| row.old_line.map(|number| (number, row.text)));
+        let new_rows = lines.iter().filter_map(|row| row.new_line.map(|number| (number, row.text)));
+        assert!(old_rows.eq(numbered_rows(old)));
+        assert!(new_rows.eq(numbered_rows(new)));
+    }
+}
+
+#[test]
+fn repeated_lines_keep_the_tie_break_across_unequal_inputs() {
+    let rows = diff(b"a\na\nb\n", b"a\nb\na\na\n");
+    let actual: Vec<_> = rows.iter().map(|row| (row.op, row.old_line, row.new_line, row.text)).collect();
+    assert_eq!(
+        actual,
+        [
+            (DiffOp::Remove, Some(1), None, b"a".as_slice()),
+            (DiffOp::Equal, Some(2), Some(1), b"a"),
+            (DiffOp::Equal, Some(3), Some(2), b"b"),
+            (DiffOp::Add, None, Some(3), b"a"),
+            (DiffOp::Add, None, Some(4), b"a"),
+        ],
+    );
+}
+
+#[test]
+fn changed_final_lines_need_no_trailing_newline() {
+    let rows = diff(b"head\nold", b"head\nnew");
+    let actual: Vec<_> = rows.iter().map(|row| (row.op, row.text)).collect();
+    assert_eq!(actual, [(DiffOp::Equal, b"head".as_slice()), (DiffOp::Remove, b"old"), (DiffOp::Add, b"new")]);
+}
+
+fn numbered_rows(source: &[u8]) -> impl Iterator<Item = (u32, &[u8])> {
+    source
+        .split_inclusive(|&byte| byte == b'\n')
+        .enumerate()
+        .map(|(index, row)| ((index + 1) as u32, &row[..row.len() - 1]))
 }
 
 #[test]
