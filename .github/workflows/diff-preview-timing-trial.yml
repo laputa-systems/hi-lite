@@ -5,8 +5,13 @@ on: pull_request
 permissions:
   contents: read
 
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+
 jobs:
-  timing:
+  test:
+    name: timing
     runs-on: ubuntu-26.04-arm
     timeout-minutes: 20
     steps:
@@ -21,6 +26,10 @@ jobs:
           ref: 326b66eae2b4e3d2d8709200b4e100b0953a6a0d
           path: .work/tools
           persist-credentials: false
+      - run: rustup show active-toolchain
+      - uses: swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          save-if: false
       - name: Build and measure the same unified diff fixtures
         shell: bash
         run: |
@@ -35,7 +44,7 @@ jobs:
             source="$PWD"
             if [[ $side == before ]]; then source="$proof/source-before"; fi
             export CARGO_TARGET_DIR="$proof/target-$side"
-            (cd "$source" && cargo bench --locked --bench hi_lite --no-run)
+            (cd "$source" && cargo bench --offline --locked --bench hi_lite --no-run)
             executables=()
             for file in "$CARGO_TARGET_DIR"/release/deps/hi_lite-* \
               "$CARGO_TARGET_DIR"/release/build/laputa-hi-lite/*/out/hi_lite-*; do
