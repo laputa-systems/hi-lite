@@ -4,6 +4,67 @@ use hi_lite::{
 };
 
 #[test]
+fn rust_raw_string_delimiters_keep_exact_hash_count_across_lines() {
+    let mut highlighter = Highlighter::new(Language::Rust);
+    let mut scratch = Vec::new();
+    let hashes = "#".repeat(255);
+    let opening = format!("r{hashes}\"inside");
+    let kinds = highlighter.highlight_into(opening.as_bytes(), &mut scratch);
+    assert_eq!(kinds, vec![Kind::String; opening.len()]);
+
+    let almost = format!("\"{} let", &hashes[..254]);
+    let kinds = highlighter.highlight_into(almost.as_bytes(), &mut scratch);
+    assert_eq!(kinds, vec![Kind::String; almost.len()]);
+
+    let closing = format!("\"{hashes} let");
+    let kinds = highlighter.highlight_into(closing.as_bytes(), &mut scratch);
+    let split = 1 + hashes.len();
+    assert!(kinds[..split].iter().all(|&kind| kind == Kind::String));
+    assert_eq!(
+        &kinds[split..],
+        &[Kind::Normal, Kind::Keyword, Kind::Keyword, Kind::Keyword]
+    );
+
+    let too_many = format!("r{hashes}#\"inside");
+    let kinds = highlighter.highlight_into(too_many.as_bytes(), &mut scratch);
+    assert_eq!(kinds[0], Kind::Normal);
+}
+
+#[test]
+fn rust_byte_and_raw_prefixes_require_adjacent_letters() {
+    let mut highlighter = Highlighter::new(Language::Rust);
+    let mut scratch = Vec::new();
+    let kinds = highlighter.highlight_into(b"b \"hello\"", &mut scratch);
+    assert_eq!(&kinds[..2], &[Kind::Normal, Kind::Normal]);
+    assert!(kinds[2..].iter().all(|&kind| kind == Kind::String));
+
+    let line = b"br#\"hello\"#";
+    let kinds = highlighter.highlight_into(line, &mut scratch);
+    assert_eq!(kinds, vec![Kind::String; line.len()]);
+}
+
+#[test]
+fn rust_nested_comment_resumes_code_after_adjacent_closers() {
+    let mut highlighter = Highlighter::new(Language::Rust);
+    let mut scratch = Vec::new();
+    let kinds = highlighter.highlight_into(b"/* /**/*/ let", &mut scratch);
+    assert!(kinds[..9].iter().all(|&kind| kind == Kind::Comment));
+    assert_eq!(kinds[9], Kind::Normal);
+    assert_eq!(&kinds[10..], &[Kind::Keyword; 3]);
+}
+
+#[test]
+fn rust_underscore_lifetime_and_character_have_distinct_kinds() {
+    let mut highlighter = Highlighter::new(Language::Rust);
+    let mut scratch = Vec::new();
+    let kinds = highlighter.highlight_into(b"'_ '_'", &mut scratch);
+    assert_eq!(
+        kinds,
+        &[Kind::Type, Kind::Type, Kind::Normal, Kind::String, Kind::String, Kind::String]
+    );
+}
+
+#[test]
 fn public_bracket_query_only_loads_lines_in_range() {
     let document: &[&[u8]] = &[b"[]"];
     let multibyte: &[&[u8]] = &["é[".as_bytes()];
