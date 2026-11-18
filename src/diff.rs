@@ -216,6 +216,7 @@ impl DiffScratch {
             });
             return;
         }
+        let context_lines = context_lines.min(lines.len());
         let max_display_lines = max_display_lines.max(1);
         self.include.resize(lines.len(), false);
         self.include.fill(false);
@@ -224,8 +225,7 @@ impl DiffScratch {
                 continue;
             }
             let start = index.saturating_sub(context_lines);
-            let next_index = index + 1;
-            let end = next_index + context_lines.min(lines.len() - next_index);
+            let end = (index + context_lines + 1).min(lines.len());
             self.include[start..end].fill(true);
         }
 
