@@ -187,6 +187,14 @@ split the version at its last dot, compare the special `M` without
 case, or keep the leading extension dot. Run
 `cargo test --locked --test api` with each fault in a separate copy.
 
+At `f73b2a7d7b25f02c34b7c17ec484949fff6a7242`, the complete
+`src/language.rs` selection accounted for 30 identities on macOS
+ARM64. Tests caught 25. Five failed to build with E0277 because
+`Language` and `RuleSet` do not implement `Default`. There were
+no survivors or timeouts. Reproduce with the same serial
+cargo-mutants 27.1.0 command as the diff census, replacing the
+source selection with `--file src/language.rs`.
+
 ## Tickets
 
 
