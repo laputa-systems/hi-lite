@@ -1,5 +1,5 @@
 Prefix: DSLP
-Next: 7
+Next: 8
 
 Deslop campaign backlog ([plan](https://github.com/laputa-systems/stuff/blob/main/docs/campaigns/deslop.md), tier A). One agent works this file with the `deslop` skill: take the lowest-numbered open ticket whose area does not start with `Needs owner ·`. After DSLP-5, work the open P1 and P2 findings, then fill in `## Report` below.
 
@@ -33,16 +33,25 @@ Both the candidate and the original locked dependency produced the same
 failures include status-bar truncation with the long fixture path and a
 terminal-resize timeout. The comparison leaves those editor tests open.
 
+Diagnose ranks the byte-to-character and lexer state boundaries first.
+The public and golden fixtures cover mixed-width UTF-8, line-state
+reuse and family-specific token kinds. The quote matcher asks its
+caller for one line. The editor supplies that line from its cursor
+path. The private conversion helper always returns a byte offset;
+its unused optional result is a candidate for Types.
+
+The opt-in XSH registry comparison fails with the clean XSH checkout
+at `c83b870d1b4e55871a319e1567cd22815986c4b1`. A scratch regeneration
+adds language tokens such as `assert`, `const` and `try`, and updates
+type names. It adds 76 lines and removes five, including the
+machine-specific source header. The test runs with
+`XSH_REPO=~/repos/laputa-systems/xsh cargo test --locked --test xsh_lang -- --ignored`.
+The tracked vocabulary records a source directory but no registry
+revision. DSLP-7 tracks fixing the supported revision and updating
+the generated vocabulary.
+
 ## Tickets
 
-### DSLP-2 · P2 · Diagnose: ultrareview into this backlog
-
-- **Area:** deslop · diagnose
-- **Where:** whole repository
-- **Problem:** No review has ranked this repository's risks for the deslop pass.
-- **Recommendation:** Run the deslop Diagnose step. Accept: the diff touches only docs, comments, and this file, and every finding names its Fix with.
-- **Fix with:** deslop
-- **Effort:** S
 
 ### DSLP-3 · P2 · Types: strict profile and typing findings
 
@@ -69,4 +78,13 @@ terminal-resize timeout. The comparison leaves those editor tests open.
 - **Problem:** No dead-code scan has run.
 - **Recommendation:** Run the deslop Dead code step. Accept: tools clean or allowlisted with reasons; walk-backs filed as Needs owner tickets.
 - **Fix with:** deslop
+- **Effort:** M
+
+### DSLP-7 · P2 · Pin the supported XSH vocabulary revision and regenerate it
+
+- **Area:** XSH vocabulary and fixtures
+- **Where:** src/languages/xsh.rs; examples/gen_xsh.rs; tests/xsh_lang.rs
+- **Problem:** The opt-in vocabulary test fails against clean XSH c83b870d1b4e55871a319e1567cd22815986c4b1. The checked-in vocabulary predates several keywords and types, and the source header gives a local path without a revision.
+- **Recommendation:** Select and record the XSH revision the library supports, regenerate the vocabulary from that revision, and rerun the opt-in test, normal goldens and editor consumer. Qualify the highlighting workload for the generated table change.
+- **Fix with:** test-audit
 - **Effort:** M
