@@ -91,6 +91,35 @@ all four callers pass an in-bounds byte index, so the companion
 mutations that stall offset progress also timed out at 45 seconds.
 The lexer, diff and remaining public boundaries stay in DSLP-4.
 
+The XSH vocabulary is pinned to registry commit
+`c83b870d1b4e55871a319e1567cd22815986c4b1`. The opt-in check regenerated
+the complete block from a bare Git repository and matched every byte,
+including the revision header. All 136 ordinary tests and Clippy passed.
+The editor `e` at `b29c901` passed all 17 display tests with its locked
+crate and with the candidate. A shorter scratch path resolved three
+shared status-bar truncation failures from the first editor attempt.
+
+In the [native ARM64 timing run](https://github.com/laputa-systems/hi-lite/actions/runs/44377931502),
+the release benchmarks compared `0587ac8` with the candidate source at
+`f401c91`. Five interleaved pairs passed the pre- and post-sample load
+checks. The vocabulary expansion initially slowed the four workloads.
+Returning on the first matching word preserves the lookup precedence
+and reduces comparisons for matching tokens.
+
+| Workload | Baseline median and range (ms) | Candidate median and range (ms) |
+| --- | ---: | ---: |
+| All snippets, warm | 52.159 (52.141–52.165) | 51.062 (51.057–51.142) |
+| All snippets, cold | 53.460 (53.439–53.495) | 52.504 (52.471–52.538) |
+| XSH snippet, warm | 0.4434 (0.4417–0.4477) | 0.4280 (0.4262–0.4414) |
+| XSH snippet, cold | 0.4580 (0.4552–0.4613) | 0.4472 (0.4434–0.4538) |
+
+Allocation counts, allocated bytes and maximum live allocations matched.
+The benchmark executable grew from 1,573,200 to 1,581,520 bytes. The
+XSH-warm median process RSS snapshot grew from 2,715,648 to 2,785,280
+bytes. Repeat with Rustybench 0.5, `hi_lite`, the same four snippet
+filters and `--bench --format json --sample-count 60 --min-time 0.5
+--max-time 1.5` on a quiet native ARM64 host.
+
 ## Tickets
 
 
@@ -99,7 +128,7 @@ The lexer, diff and remaining public boundaries stay in DSLP-4.
 
 - **Area:** deslop · tests
 - **Where:** test suites and CI
-- **Problem:** Coverage and mutation results are unmeasured; no deslop mutation lane exists.
+- **Problem:** `make coverage` and the display and bracket trial cover the first Tests scope. The wider lexer and diff mutation inventory and the whole-change lane remain open.
 - **Recommendation:** Run the deslop Tests step. Accept: no undispositioned survivor in critical code, the test cost budget holds, and the lane is green where the tools are mirrored.
 - **Fix with:** deslop
 - **Effort:** M
@@ -111,13 +140,4 @@ The lexer, diff and remaining public boundaries stay in DSLP-4.
 - **Problem:** No dead-code scan has run.
 - **Recommendation:** Run the deslop Dead code step. Accept: tools clean or allowlisted with reasons; walk-backs filed as Needs owner tickets.
 - **Fix with:** deslop
-- **Effort:** M
-
-### DSLP-7 · P2 · Pin the supported XSH vocabulary revision and regenerate it
-
-- **Area:** XSH vocabulary and fixtures
-- **Where:** src/languages/xsh.rs; examples/gen_xsh.rs; tests/xsh_lang.rs
-- **Problem:** The opt-in vocabulary test fails against clean XSH c83b870d1b4e55871a319e1567cd22815986c4b1. The checked-in vocabulary predates several keywords and types, and the source header gives a local path without a revision.
-- **Recommendation:** Select and record the XSH revision the library supports, regenerate the vocabulary from that revision, and rerun the opt-in test, normal goldens and editor consumer. Qualify the highlighting workload for the generated table change.
-- **Fix with:** test-audit
 - **Effort:** M
