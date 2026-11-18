@@ -62,6 +62,17 @@ jobs:
           mv "$proof/registry-before.toml" "$proof/source-before/.cargo/config.toml"
           shasum -a 256 "$proof/bench-before" "$proof/bench-after"
           wc -c "$proof/bench-before" "$proof/bench-after"
+          for side in before after; do
+            executable="$proof/bench-$side"
+            nm --defined-only --format=posix "$executable" > "$proof/reports/$side-symbols.txt"
+            while read -r symbol _; do
+              case "$symbol" in
+                *DiffScratch*unified_preview_into*|*DiffScratch*diff_into*)
+                  objdump -d --demangle --disassemble="$symbol" "$executable"
+                  ;;
+              esac
+            done < "$proof/reports/$side-symbols.txt" > "$proof/reports/$side-diff-assembly.txt"
+          done
           uname -smr
           rustc --version
 
