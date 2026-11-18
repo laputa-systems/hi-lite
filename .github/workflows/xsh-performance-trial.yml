@@ -37,7 +37,8 @@ jobs:
             export CARGO_TARGET_DIR="$proof/target-$side"
             (cd "$source" && cargo bench --locked --bench hi_lite --no-run)
             executables=()
-            for file in "$CARGO_TARGET_DIR"/release/deps/hi_lite-*; do
+            for file in "$CARGO_TARGET_DIR"/release/deps/hi_lite-* \
+              "$CARGO_TARGET_DIR"/release/build/laputa-hi-lite/*/out/hi_lite-*; do
               if [[ -f $file && -x $file ]]; then executables+=("$file"); fi
             done
             test "${#executables[@]}" -eq 1
