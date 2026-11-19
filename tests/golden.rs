@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use hi_lite::{Highlighter, Kind, Language, Run, runs};
 
@@ -154,12 +154,4 @@ fn parse_kind(kind: &str, path: &Path, line: usize) -> Kind {
         "macro" => Kind::Macro,
         _ => panic!("{}:{}: unknown kind {kind:?}", path.display(), line),
     }
-}
-
-#[allow(dead_code)]
-fn _fixture_paths(root: &Path) -> Vec<PathBuf> {
-    FIXTURES
-        .iter()
-        .map(|(_, source_name, _)| root.join(format!("{source_name}.snippet")))
-        .collect()
 }
