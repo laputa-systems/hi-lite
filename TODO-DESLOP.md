@@ -1,9 +1,38 @@
 Prefix: DSLP
-Next: 9
+Next: 12
 
 Deslop campaign backlog ([plan](https://github.com/laputa-systems/stuff/blob/main/docs/campaigns/deslop.md), tier A). One agent works this file with the `deslop` skill: take the lowest-numbered open ticket whose area does not start with `Needs owner ·`. After DSLP-5, work the open P1 and P2 findings, then fill in `## Report` below.
 
 ## Report
+
+**Bench audit (DSLP-11)**
+
+The warm and cold corpus workloads ask about throughput and allocation traffic
+for all checked-in language snippets; single-line workloads isolate short calls;
+per-language warm/cold workloads localize lexer costs. The two diff workloads
+measure diff plus preview on two checked-in fixture pairs with reused or fresh
+buffers. All repeat fixed small inputs 512 times, count input bytes and lines,
+and consume checksums. XOR over 512 identical repetitions cancels each
+checksum; none is compared to expected results. Golden and diff tests check
+correctness separately, and cancellation weakens the completed-work witness. These do not establish
+editor-scale latency, tail latency, or memory growth (rank 1, DSLP-9).
+
+Rustybench times one process and reports allocation traffic, not retained heap
+or peak RSS. It has no accepted budget, automated regression gate, interleaved
+reference, host gate or attribution trace. Ten-sample driver runs are exploratory;
+a busy host cannot establish a timing verdict. CPU sampling and a heap profiler
+in separate runs are the cheapest starting points for attribution (rank 2,
+DSLP-10). I/O and network metrics are not primary for this in-memory library;
+fixture loading is outside the timed closures. There is no multi-process or
+external-service workload. The Syntect comparison crate is separate and no
+matched-output comparison is established here.
+
+The entrypoint checks tools, fixture presence and disk before launching selected
+work; Cargo handles stale artifacts. Inputs are checked into the selected commit. The summary records commit, dirty
+state, compiler, commands and completion, but does not capture host telemetry
+or establish timing validity. There are no benchmark-owned processes to
+clean up. DSLP-11 is closed by the entrypoint and this audit; the two ranked
+questions remain open.
 
 Ground (DSLP-1) passed at base `6e96bc8b353a95994712ae3ea55d449e0435543f`. [Verification](AGENTS.md#verification) records the checked public contracts, the editor consumer, the existing benchmark workloads, and the separately enabled XSH registry check.
 
@@ -197,11 +226,30 @@ No consumer test or performance measurement is needed for that reason.
 
 
 
+### DSLP-9 · P3 · Benchmark representative editor work with correctness checks
+
+- **Area:** Bench · workloads
+- **Where:** benches/hi_lite.rs
+- **Problem:** Small repeated snippets and two diff fixtures do not establish latency or memory scaling for realistic editor documents, and timed checksums cancel over the 512 repetitions and are not checked against expected output.
+- **Recommendation:** Define representative document and diff sizes with correctness and completed-work checks, then measure scaling.
+- **Fix with:** none
+- **Effort:** M
+
 ### DSLP-8 · P4 · Review public APIs absent from the known editor consumer
 
 - **Area:** Needs owner · public API
 - **Where:** src/lib.rs:11, src/highlight.rs:2548, src/diff.rs:9, src/language.rs:52
 - **Problem:** The e checkout uses streaming highlighting, conversion into a buffer, detection, delimiters and XSH scanning, but has no direct call sites for the diff API, allocating byte conversion, stateless highlighting, runs, Language::from_name or Language::detect, and several Highlighter convenience methods; other consumers are unknown and these remain supported public contracts.
 - **Recommendation:** Decide whether to retain these APIs for other consumers before considering any contract change; check downstream usage beyond e.
+- **Fix with:** none
+- **Effort:** M
+
+
+### DSLP-10 · P4 · Make benchmark regressions attributable and comparable
+
+- **Area:** Bench · measurement
+- **Where:** docs/benchmarks.md
+- **Problem:** The suite has no accepted baseline or budget, host validity gate, interleaved comparison, CPU profile or retained-memory attribution; allocation traffic alone cannot explain every regression.
+- **Recommendation:** Define a comparison protocol and budget for representative workloads, and document low-overhead CPU and heap profiling separately from timing.
 - **Fix with:** none
 - **Effort:** M
