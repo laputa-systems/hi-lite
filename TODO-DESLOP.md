@@ -68,29 +68,6 @@ macOS scheduling cancellation affected both the documentation PR and
 its default base. The retried [macOS job](https://github.com/laputa-systems/hi-lite/actions/runs/44358336521/job/135004491711)
 passed.
 
-The first Tests scope is bracket search and byte-to-display mapping on
-macOS ARM64 at base `62b26cf`. With cargo-llvm-cov 0.9.1, `make coverage`
-passed 136 tests with the external XSH check ignored. Line coverage moved
-from 3,950 to 3,987 of 4,165 and branches from 1,164 to 1,185 of 1,528.
-The public tests check character offsets in both directions at the scan limit,
-columns past the end of a UTF-8 line, and the exact kinds emitted for
-expanded tabs and multi-byte characters when the output buffer is reused.
-Changing the limit to 999 and changing the second kind of a multi-byte
-line's tab to Normal each failed its corresponding test.
-
-Serial cargo-mutants 27.1.0 selected the same 80 identities with
-`--file src/highlight.rs --re 'src/highlight.rs:(23[3-9][0-9]|240[0-7]|24[7-9][0-9]|25[0-3][0-9]):'`,
-`--gitignore true --baseline run --timeout 10 --build-timeout 300 --jobs 1`,
-and `CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=1`. The baseline caught 50,
-missed 26, timed out on three and could not build one because
-`TextPosition` has no `Default`. The candidate caught 73 and missed two,
-with four timeouts and the same unviable mutation. The added UTF-8
-past-end case caught one of the two misses. The other is equivalent:
-all four callers pass an in-bounds byte index, so the companion
-`bi < byte_idx` guard prevents reaching `line.len()`. All four
-mutations that stall offset progress also timed out at 45 seconds.
-The lexer, diff and remaining public boundaries stay in DSLP-4.
-
 The XSH vocabulary is pinned to registry commit
 `c83b870d1b4e55871a319e1567cd22815986c4b1`. The opt-in check regenerated
 the complete block from a bare Git repository and matched every byte,
@@ -121,40 +98,6 @@ filters and `--bench --format json --sample-count 60 --min-time 0.5
 --max-time 1.5` on a quiet native ARM64 host.
 
 
-**Diff behavior tests**
-
-Serial cargo-mutants 27.1.0 selected all 148 `src/diff.rs` identities
-at base `5a38860`. The baseline caught 116, missed 26, timed out on two
-and could not build four. Use `--file src/diff.rs --gitignore true
---baseline run --timeout 10 --build-timeout 300 --jobs 1` on macOS
-ARM64 with `CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=1`. The first
-candidate caught 131 and missed 11 with the same other outcomes.
-The final two cases caught six of those 11 in a focused rerun.
-The measured scope now accounts for 137 caught, five missed, two
-confirmed hangs and four compiler rejections.
-
-The cases exercise exact numbered rows with repeated lines, both
-exhausted-side paths, the final line without a newline, a source row
-matching the omission text, and a reused preview at the zero-row
-limit. Repeating the cursor-update mutations at lines 187 and 195
-with a 45-second timeout confirmed both hangs. The four compiler
-rejections are `E0277` because diff row types have no `Default`.
-The four allocation-capacity mutations change allocation behavior
-with the same diff rows. They retain their performance disposition
-in DSLP-4. At a mismatched LCS cell, comparing the left neighbor to
-`max(left, up)` is equivalent to comparing it to `up`. That explains
-the remaining backtracking mutation at line 179.
-
-**Full-range diff preview**
-
-`DiffScratch::unified_preview_into` panicked on `usize::MAX` at
-`5a38860`. The boundary test calls the public method and checks all
-available preview rows in order. Bound the context to the input length
-before the row loop. The alignment table now clears only the top row
-and first column before using them. The recurrence overwrites the
-interior cells in order. Removing either clear breaks the corresponding
-scratch-reuse case when the row stride changes.
-
 [Native ARM64 run 44386818140](https://github.com/laputa-systems/hi-lite/actions/runs/44386818140)
 compared `5a38860` with `884618d` on the same Linux runner using
 five interleaved pairs and the pinned Rust compiler. Cold diff fixture
@@ -172,88 +115,51 @@ The complete diff and four preview settings per pair produced 19,845
 matching records. Their SHA-256 was
 `75d8115eb782b9a25111a1d4ae3e0c98e05f6f96a1fbc629fee9a549173e95ac`.
 
-**Language detection**
+**Tests: required scope and dispositions**
 
-The public cases cover CRLF, tab-separated `env -S` arguments,
-a multi-part interpreter version, and a non-UTF-8 path prefix.
-Unknown interpreters and a missing `env` command stay unresolved.
-The extension cases preserve `.m` for Objective-C and `.M` for
-Objective-C++.
+The required scope is the public bracket scan limit and UTF-8 column/display
+mapping (`src/highlight.rs`); diff alignment, preview context bounds and scratch
+reuse (`src/diff.rs`); extension and shebang detection (`src/language.rs`);
+and Rust and JSON token boundaries (`src/highlight.rs`). Ordinary API and diff
+tests protect the scan limit in both directions, mixed-width columns and reused
+display buffers, numbered diff rows and changing scratch strides, `usize::MAX`
+context, detection edge cases, and token kinds and lexer state across boundaries.
+Golden fixtures exercise additional languages. The original maximum-context
+panic was fixed and its regression retained at `884618d`. Removing either
+alignment-table boundary clear failed the scratch-reuse cases; changing the
+scan limit to 999 or a tab display kind failed the corresponding API test.
 
-All 18 API tests passed. At `e91982b`, six independent faults in
-`src/language.rs` failed the two new cases. They remove ASCII line
-trimming, remove the tab separator, read the flag as the interpreter,
-split the version at its last dot, compare the special `M` without
-case, or keep the leading extension dot. Run
-`cargo test --locked --test api` with each fault in a separate copy.
+Recorded serial cargo-mutants 27.1.0 results on macOS ARM64 used `--gitignore
+true --baseline run --timeout 10 --build-timeout 300 --jobs 1` with one Cargo
+job and incremental compilation disabled. At `62b26cf`, bracket/display
+selected 80: 73 caught, two missed, four timeouts and one unviable; a later
+UTF-8 past-end test caught one miss. The remaining guard is redundant for all
+four in-bounds callers. The four cursor-progress mutations also timed out at
+45 seconds. At `5a38860`, diff selected 148: 137 caught across the candidate
+and focused rerun, five missed, two confirmed 45-second hangs and four E0277
+unviable. Four misses only alter allocation capacity; the fifth is an equivalent
+LCS comparison. At `f73b2a7`, language detection selected 30: 25 caught, five
+E0277 unviable, no misses or timeouts. Six hand-injected detection faults failed
+at `e91982b`. At `75eed701`, Rust token scans selected 54: 47 caught, two
+output-equivalent EOF iterations and five cursor-advance timeouts. JSON's 74
+identities yielded 64 caught, two equivalent number-branch increments and eight
+timeouts; two newly timed-out cursor updates also timed out at 45 seconds.
+Unviable mutations are compiler rejections, not evidence of detection. Timeouts
+without a recorded longer confirmation remain incomplete, not catches. There
+are no accepted-risk exclusions in the required survivor groups.
 
-At `f73b2a7d7b25f02c34b7c17ec484949fff6a7242`, the complete
-`src/language.rs` selection accounted for 30 identities on macOS
-ARM64. Tests caught 25. Five failed to build with E0277 because
-`Language` and `RuleSet` do not implement `Default`. There were
-no survivors or timeouts. Reproduce with the same serial
-cargo-mutants 27.1.0 command as the diff census, replacing the
-source selection with `--file src/language.rs`.
-
-**Rust token boundaries**
-
-On the public line highlighter, nested comment closers resume code
-coloring, and the underscore lifetime and character literal have
-distinct kinds. A raw byte prefix requires adjacent letters. A raw
-string with 255 hashes keeps its state across a shorter delimiter
-and closes at the full delimiter. The 256-hash opener does not enter
-raw string state.
-
-At `75eed701595361ae6fb7ff794c76bea833fd8474`, comparing identical
-production sources across the two runs caught five additional
-mutations. The 54 identities moved from 42 caught, seven survivors
-and five timeouts to 47 caught, two survivors and the same five
-timeouts. Both survivors add one iteration at EOF. Neither scanner
-can match a nonempty delimiter at EOF, and both return the same
-highlight range, end position and state. The five timeouts involve
-changes to cursor advancement. Their timeout outcomes are separate
-from test catches.
-
-Reproduce with the earlier serial diff command and the environment
-`RUST_TEST_THREADS=1 CARGO_BUILD_JOBS=1 CARGO_INCREMENTAL=0`.
-Use `--file src/highlight.rs` and
-`--re ' in (rust_raw_string_open|rust_raw_string_close|scan_rust_raw_string|rust_lifetime_end|scan_rust_block_comment)$'`.
-Compare the names and outcomes in `mutants.out/outcomes.json`.
-
-
-**JSON token boundaries**
-
-The public highlighter checks escaped keys and values, optional
-whitespace before a colon, signed exponents, and adjacent brackets.
-The same fixture covers a partial string and a standalone minus sign
-while editing.
-
-The same 74 `highlight_line_json` identities account for 44 caught,
-24 missed and six timeouts before this fixture, and 64 caught, two
-missed and eight timeouts after. The two newly timed-out cursor
-updates still timed out with a separate 45-second limit. Both
-survivors alter the first increment in the number branch. The
-following loop already consumes the leading minus sign or digit,
-so the scanned range and coloring remain the same.
-
-Reproduce with the serial diff census command above, selecting
-`--file src/highlight.rs --re ' in highlight_line_json$'`. Compare
-the identities and outcomes on macOS ARM64 before and after
-including `json_keys_values_and_incomplete_tokens_keep_byte_boundaries`.
-Other configuration scanners remain in DSLP-4.
+The wider lexer and other configuration scanners, broad module sweeps and
+whole-change mutation lane are advisory and unrun or incomplete. The opt-in XSH
+registry comparison requires its pinned external repository; editor end-to-end
+checks have shared environment-dependent failures recorded above. Neither is
+claimed as a local pass here. No new mutation trial was run for this closure:
+actual new trial cost is 0 runner-minutes. Historical trial durations were not
+recorded. No new regression test was needed for the dispositioned survivors.
 
 ## Tickets
 
 
 
-### DSLP-4 · P2 · Tests: coverage, boundary gaps, mutation
-
-- **Area:** deslop · tests
-- **Where:** test suites and CI
-- **Problem:** `make coverage` and the display and bracket trial cover the first Tests scope. The wider lexer and diff mutation inventory and the whole-change lane remain open.
-- **Recommendation:** Run the deslop Tests step. Accept: no undispositioned survivor in critical code, the test cost budget holds, and the lane is green where the tools are mirrored.
-- **Fix with:** deslop
-- **Effort:** M
 
 ### DSLP-5 · P2 · Dead code: tools and debloat
 
