@@ -1,4 +1,4 @@
-.PHONY: test lint coverage gen-xsh publish
+.PHONY: test lint coverage gen-xsh publish bench bench-check bench-list
 
 test:
 	cargo test --locked
@@ -17,3 +17,12 @@ gen-xsh:
 
 publish:
 	./tools/bump_minor_release.sh
+
+bench:
+	@python3 tools/bench.py run
+
+bench-check:
+	@python3 tools/bench.py check
+
+bench-list:
+	@python3 tools/bench.py list

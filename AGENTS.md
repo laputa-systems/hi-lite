@@ -5,6 +5,7 @@ Rust library for line-oriented syntax highlighting and renderer-neutral diff pre
 - Build: `cargo build --locked`
 - Test: `make test`
 - Check: `make lint`
+- Benchmarks: `make bench`, `make bench-check`, `make bench-list` (see [procedure](docs/benchmarks.md)).
 - Regenerate XSH vocabulary with `make gen-xsh`. Point `XSH_REPO` at a Git repository carrying `XSH_REVISION` in `examples/gen_xsh.rs`. The default is `~/d/laputa-systems/xsh`.
 - Publish: `make publish`
 - `Highlighter` returns one semantic `Kind` per input byte and retains lexical `State` across lines.
