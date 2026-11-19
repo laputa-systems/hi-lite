@@ -90,7 +90,10 @@ class SelectionTests(unittest.TestCase):
 
 
 def main():
-    action = sys.argv[1]
+    action = sys.argv[1] if len(sys.argv) == 2 else ''
+    if action not in ('run', 'check', 'list', 'self-test'):
+        print('usage: tools/bench.py run|check|list|self-test', file=sys.stderr)
+        sys.exit(2)
     if action == 'self-test':
         import unittest.mock
         unittest.main(argv=[sys.argv[0]])
