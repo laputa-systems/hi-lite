@@ -1,5 +1,5 @@
 Prefix: DSLP
-Next: 8
+Next: 9
 
 Deslop campaign backlog ([plan](https://github.com/laputa-systems/stuff/blob/main/docs/campaigns/deslop.md), tier A). One agent works this file with the `deslop` skill: take the lowest-numbered open ticket whose area does not start with `Needs owner ·`. After DSLP-5, work the open P1 and P2 findings, then fill in `## Report` below.
 
@@ -156,16 +156,52 @@ claimed as a local pass here. No new mutation trial was run for this closure:
 actual new trial cost is 0 runner-minutes. Historical trial durations were not
 recorded. No new regression test was needed for the dispositioned survivors.
 
+**Dead code (DSLP-5)**
+
+On macOS ARM64 with Rust 1.102.0-nightly, the all-target, all-features
+`-W dead_code -W unreachable_pub` check found no unsuppressed dead code.
+The library-only visibility warnings name the three XSH vocabulary arrays
+used by its rule table and `scan_type_line`, called by the exported scanner.
+The test build also reports the test-only XSH collector and buffer and its
+four methods; XSH unit tests exercise them. The XSH integration test reports
+the shared generator's `Vocab`, `splice_into`, `regenerate`, and `default_repo`;
+the test calls them, and the generator also uses them. These are not public
+library exports. `unreachable_pub` is advisory for this library and matters
+as a dead-code gate only for binaries. Cargo-machete 0.10.1 found no unused
+dependencies. The package has no features.
+
+The suppressed allocating `byte_kinds_to_char_kinds` is re-exported and its
+unit tests call it; the editor uses the buffer-reusing variant. Keep the
+public contract and track the consumer question in DSLP-8. The suppression
+on `tests/xsh_lang.rs` keeps the generator CLI and reporting fields available
+when that example is included as a module; `make gen-xsh` executes the CLI.
+The fixture generator examples and tools remain: `make gen-xsh`, the two
+documented fixture regeneration scripts, and `make publish` invoke them.
+The scoped debloat review found the fixture collector cut and the public API
+owner question. Language rule tables feed the highlighter, diff scratch owns
+reusable work buffers, and fixture tools regenerate checked-in test inputs;
+their live behavior and declared workflows remain. Broader restructuring of
+hot loops, dependencies, tests, or tooling was outside this task's authority.
+
+Removal `9c5173d`: `tests/golden.rs` had a suppressed `_fixture_paths`
+collector with no caller. Search covered `src/`, `tests/`, `examples/`,
+`benches/`, and `tools/`; the live golden test constructs paths directly.
+The package has no feature or platform condition on this helper. The golden
+test and full test and lint checks passed on macOS ARM64. This test-only cut
+does not change the library API, runtime, downstream consumers, or hot paths.
+No consumer test or performance measurement is needed for that reason.
+
 ## Tickets
 
 
 
 
-### DSLP-5 · P2 · Dead code: tools and debloat
 
-- **Area:** deslop · dead code
-- **Where:** whole repository
-- **Problem:** No dead-code scan has run.
-- **Recommendation:** Run the deslop Dead code step. Accept: tools clean or allowlisted with reasons; walk-backs filed as Needs owner tickets.
-- **Fix with:** deslop
+### DSLP-8 · P4 · Review public APIs absent from the known editor consumer
+
+- **Area:** Needs owner · public API
+- **Where:** src/lib.rs:11, src/highlight.rs:2548, src/diff.rs:9, src/language.rs:52
+- **Problem:** The e checkout uses streaming highlighting, conversion into a buffer, detection, delimiters and XSH scanning, but has no direct call sites for the diff API, allocating byte conversion, stateless highlighting, runs, Language::from_name or Language::detect, and several Highlighter convenience methods; other consumers are unknown and these remain supported public contracts.
+- **Recommendation:** Decide whether to retain these APIs for other consumers before considering any contract change; check downstream usage beyond e.
+- **Fix with:** none
 - **Effort:** M
