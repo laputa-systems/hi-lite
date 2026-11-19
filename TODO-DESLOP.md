@@ -220,6 +220,28 @@ Use `--file src/highlight.rs` and
 `--re ' in (rust_raw_string_open|rust_raw_string_close|scan_rust_raw_string|rust_lifetime_end|scan_rust_block_comment)$'`.
 Compare the names and outcomes in `mutants.out/outcomes.json`.
 
+
+**JSON token boundaries**
+
+The public highlighter checks escaped keys and values, optional
+whitespace before a colon, signed exponents, and adjacent brackets.
+The same fixture covers a partial string and a standalone minus sign
+while editing.
+
+The same 74 `highlight_line_json` identities account for 44 caught,
+24 missed and six timeouts before this fixture, and 64 caught, two
+missed and eight timeouts after. The two newly timed-out cursor
+updates still timed out with a separate 45-second limit. Both
+survivors alter the first increment in the number branch. The
+following loop already consumes the leading minus sign or digit,
+so the scanned range and coloring remain the same.
+
+Reproduce with the serial diff census command above, selecting
+`--file src/highlight.rs --re ' in highlight_line_json$'`. Compare
+the identities and outcomes on macOS ARM64 before and after
+including `json_keys_values_and_incomplete_tokens_keep_byte_boundaries`.
+Other configuration scanners remain in DSLP-4.
+
 ## Tickets
 
 

@@ -567,3 +567,51 @@ fn syntect_extensions_resolve_to_host_or_generic_lexers() {
         );
     }
 }
+
+#[test]
+fn json_keys_values_and_incomplete_tokens_keep_byte_boundaries() {
+    use Kind::{Bracket, Keyword, Normal, Number, Type};
+
+    let fixtures: &[&[(&[u8], Kind)]] = &[
+        &[
+            (b"{", Bracket),
+            (br#""a\"b""#, Keyword),
+            (b" \t:\t", Normal),
+            (br#""c\\d""#, Kind::String),
+            (b",", Normal),
+            (br#""samples""#, Keyword),
+            (b":", Normal),
+            (b"[", Bracket),
+            (b"-1.25e-3", Number),
+            (b",", Normal),
+            (b"2E+6", Number),
+            (b", ", Normal),
+            (b"false", Type),
+            (b", ", Normal),
+            (b"null", Type),
+            (b", ", Normal),
+            (b"true", Type),
+            (b"]}", Bracket),
+        ],
+        &[(b"falsehood", Normal)],
+        &[(b"true", Type)],
+        &[(b"-", Normal)],
+        &[(b"[", Bracket), (b"-", Normal), (b"]", Bracket), (b" ", Normal)],
+        &[(b"\"unfinished\\", Kind::String)],
+    ];
+    let mut highlighter = Highlighter::new(Language::Json);
+    let mut scratch = Vec::new();
+    for fragments in fixtures {
+        let line: Vec<_> = fragments.iter().flat_map(|(bytes, _)| bytes.iter().copied()).collect();
+        let expected: Vec<_> = fragments
+            .iter()
+            .flat_map(|(bytes, kind)| std::iter::repeat_n(*kind, bytes.len()))
+            .collect();
+        assert_eq!(
+            highlighter.highlight_into(&line, &mut scratch),
+            expected,
+            "{:?}",
+            String::from_utf8_lossy(&line),
+        );
+    }
+}
