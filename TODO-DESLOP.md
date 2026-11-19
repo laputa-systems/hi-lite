@@ -242,6 +242,18 @@ the identities and outcomes on macOS ARM64 before and after
 including `json_keys_values_and_incomplete_tokens_keep_byte_boundaries`.
 Other configuration scanners remain in DSLP-4.
 
+
+**YAML single-quoted scalars**
+
+The public byte-coloring test at `d103040` showed that
+`label: 'it''s # literal' # comment` stopped coloring the value
+at its first doubled apostrophe. The YAML scanner now consumes the
+pair inside the scalar. The fixture checks embedded and adjacent
+apostrophes, an empty scalar, a partial value during editing, and
+the separate comment. Reproduce with
+`cargo test --locked --test api yaml_single_quoted_values_keep_doubled_quotes_in_the_string`.
+[YAML single-quoted style](https://yaml.org/spec/1.2.2/#732-single-quoted-style)
+
 ## Tickets
 
 
