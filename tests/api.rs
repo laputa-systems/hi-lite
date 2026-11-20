@@ -615,3 +615,23 @@ fn json_keys_values_and_incomplete_tokens_keep_byte_boundaries() {
         );
     }
 }
+
+#[test]
+fn yaml_single_quoted_values_keep_doubled_quotes_in_the_string() {
+    let mut highlighter = Highlighter::new(Language::Yaml);
+    let mut scratch = Vec::new();
+    for value in ["'it''s # literal'", "'''quoted'''", "''"] {
+        let line = format!("label: {value} # comment");
+        let colors = highlighter.highlight_into(line.as_bytes(), &mut scratch);
+        let start = "label: ".len();
+        let end = start + value.len();
+        assert_eq!(&colors[..5], &[Kind::Keyword; 5], "{line}");
+        assert_eq!(&colors[5..start], &[Kind::Normal; 2], "{line}");
+        assert!(colors[start..end].iter().all(|&kind| kind == Kind::String), "{line}");
+        assert_eq!(colors[end], Kind::Normal, "{line}");
+        assert!(colors[end + 1..].iter().all(|&kind| kind == Kind::Comment), "{line}");
+    }
+    let line = "label: 'pending''";
+    let colors = highlighter.highlight_into(line.as_bytes(), &mut scratch);
+    assert!(colors["label: ".len()..].iter().all(|&kind| kind == Kind::String), "{line}");
+}

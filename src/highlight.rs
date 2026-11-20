@@ -1812,6 +1812,10 @@ fn highlight_yaml_value(val: &[u8], hl: &mut [Kind]) {
             }
             if trimmed[i] == quote {
                 i += 1;
+                if quote == b'\'' && trimmed.get(i) == Some(&quote) {
+                    i += 1;
+                    continue;
+                }
                 break;
             }
             i += 1;
