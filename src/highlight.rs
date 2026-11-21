@@ -1689,9 +1689,9 @@ fn find_yaml_comment(line: &[u8]) -> Option<usize> {
     let mut in_double_quote = false;
     while i < line.len() {
         if line[i] == b'\'' && !in_double_quote {
-            in_single_quote = !in_single_quote;
+            in_single_quote.toggle();
         } else if line[i] == b'"' && !in_single_quote {
-            in_double_quote = !in_double_quote;
+            in_double_quote.toggle();
         } else if line[i] == b'\\' && in_double_quote && i + 1 < line.len() {
             i += 1; // skip escaped char
         } else if line[i] == b'#'
@@ -1776,9 +1776,9 @@ fn find_yaml_colon(line: &[u8]) -> Option<usize> {
     let mut in_double_quote = false;
     while i < line.len() {
         if line[i] == b'\'' && !in_double_quote {
-            in_single_quote = !in_single_quote;
+            in_single_quote.toggle();
         } else if line[i] == b'"' && !in_single_quote {
-            in_double_quote = !in_double_quote;
+            in_double_quote.toggle();
         } else if line[i] == b'\\' && in_double_quote && i + 1 < line.len() {
             i += 1;
         } else if line[i] == b':' && !in_single_quote && !in_double_quote {
@@ -2042,9 +2042,9 @@ fn find_ini_inline_comment(val: &[u8]) -> Option<usize> {
     let mut i = 0;
     while i < val.len() {
         if val[i] == b'"' && !in_single_quote {
-            in_double_quote = !in_double_quote;
+            in_double_quote.toggle();
         } else if val[i] == b'\'' && !in_double_quote {
-            in_single_quote = !in_single_quote;
+            in_single_quote.toggle();
         } else if val[i] == b'\\' && (in_double_quote || in_single_quote) && i + 1 < val.len() {
             i += 1; // skip escaped char
         } else if (val[i] == b';' || val[i] == b'#')
