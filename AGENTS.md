@@ -14,6 +14,8 @@ Rust library for line-oriented syntax highlighting and renderer-neutral diff pre
 
 ## Verification
 
+`make clean` removes the checkout’s ordinary `./target` directory. It refuses a file or symlink at that path.
+
 - On macOS ARM64, `make test` passed 133 tests in 9.57 s with a fresh Cargo target and 1.18 s warm. `make lint` passed in 5.39 s. Both ran with two Cargo jobs.
 - `tests/api.rs` covers state reuse, byte and character boundaries, runs, language aliases, extension and shebang detection, and public XSH scanning.
 - `tests/golden.rs` compares syntax results with checked-in Syntect-derived fixtures. See [fixture provenance and regeneration](docs/testing-fixtures.md).
