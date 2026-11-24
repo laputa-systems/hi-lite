@@ -12,6 +12,8 @@ Rust library for line-oriented syntax highlighting and renderer-neutral diff pre
 - Highlight kinds and `Run` offsets are byte-indexed.
 - XSH string openers in `src/languages/xsh.rs` are longest-match first.
 
+The roadmap, [docs/roadmap.md](docs/roadmap.md), holds all current and future work; its Status is the resume point.
+
 ## Verification
 
 `make clean` removes the checkout’s ordinary `./target` directory. It refuses a file or symlink at that path.
